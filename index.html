@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monopoli Simple Web Edition</title>
+    <!-- Tailwind CSS for UI styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        /* Responsive Monopoly Board Aspect Ratio Container */
+        .board-grid {
+            display: grid;
+            grid-template-columns: 2fr repeat(9, 1fr) 2fr;
+            grid-template-rows: 2fr repeat(9, 1fr) 2fr;
+            aspect-ratio: 1 / 1;
+            width: 100%;
+            max-width: 780px;
+            background-color: #cbd5e1;
+            border: 4px solid #334155;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+        }
+
+        .tile {
+            background-color: #f8fafc;
+            border: 1px solid #94a3b8;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            padding: 2px;
+            font-size: 0.65rem;
+            text-align: center;
+            user-select: none;
+        }
+
+        @media (min-width: 640px) {
+            .tile { font-size: 0.75rem; }
+        }
+
+        .tile-header {
+            width: 100%;
+            height: 25%;
+            border-bottom: 1px solid rgba(0,0,0,0.15);
+        }
+
+        .tile-bottom-header {
+            width: 100%;
+            height: 25%;
+            border-top: 1px solid rgba(0,0,0,0.15);
+        }
+
+        .tile-left-header {
+            height: 100%;
+            width: 25%;
+            border-right: 1px solid rgba(0,0,0,0.15);
+        }
+
+        .tile-right-header {
+            height: 100%;
+            width: 25%;
+            border-left: 1px solid rgba(0,0,0,0.15);
+        }
+
+        /* Player tokens styling */
+        .tokens-container {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .player-token {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @media (min-width: 640px) {
+            .player-token { width: 22px; height: 22px; }
+        }
+
+        /* Dice Roll Effect */
+        .dice {
+            width: 48px;
+            height: 48px;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1e293b;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-2 sm:p-6">
+
+    <!-- Top Navigation Bar -->
+    <header class="max-w-7xl w-full mx-auto flex justify-between items-center mb-4 bg-slate-800/80 backdrop-blur border border-slate-700 p-4 rounded-xl">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-extrabold text-xl shadow-lg">
+                M
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-white tracking-wide">Monopoly Mini</h1>
+                <p class="text-xs text-slate-400">Web Edition • Ready for GitHub Pages</p>
+            </div>
+        </div>
+
+        <div class="flex gap-2">
+            <button onclick="toggleSetupModal()" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-xs sm:text-sm font-semibold rounded-lg transition border border-slate-600">
+                <i class="fa-solid fa-gear mr-1">="></i> Pengaturan Game
+            </button>
+            <button onclick="resetGame()" class="px-3 py-2 bg-rose-600 hover:bg-rose-500 text-xs sm:text-sm font-semibold rounded-lg transition text-white">
+                <i class="fa-solid fa-rotate-right mr-1"></i> Reset
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Left Side: Monopoly Board -->
+        <section class="lg:col-span-7 xl:col-span-7 flex justify-center">
+            <div id="board" class="board-grid">
+                <!-- Inner Board Center Area -->
+                <div class="col-start-2 col-span-9 row-start-2 row-span-9 bg-slate-100 flex flex-col justify-between p-4 relative overflow-hidden">
+                    <div class="absolute -right-12 -bottom-12 opacity-5 pointer-events-none">
+                        <i class="fa-solid fa-house-chimney text-[220px] text-slate-900"></i>
+                    </div>
+
+                    <!-- Center Monopoly Header -->
+                    <div class="text-center mt-4">
+                        <h2 class="text-2xl sm:text-4xl font-extrabold tracking-widest text-slate-800 uppercase">MONOPOLY</h2>
+                        <p class="text-xs text-slate-500 font-semibold tracking-wider">LITE EDITION</p>
+                    </div>
+
+                    <!-- Current Turn Status & Action Controls -->
+                    <div class="bg-white/90 backdrop-blur p-4 rounded-xl shadow-md border border-slate-200 text-slate-800 max-w-sm mx-auto w-full text-center">
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Giliran Saat Ini</div>
+                        <div id="current-player-display" class="text-lg font-extrabold text-indigo-600 flex items-center justify-center gap-2">
+                            <span id="player-indicator-dot" class="w-3 h-3 rounded-full bg-red-500"></span>
+                            <span id="current-player-name">Player 1</span>
+                        </div>
+
+                        <!-- Dice Roll Output -->
+                        <div class="flex items-center justify-center gap-3 my-3">
+                            <div id="dice-1" class="dice">1</div>
+                            <div id="dice-2" class="dice">1</div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button id="btn-roll" onclick="handleRollDice()" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 px-4 rounded-lg shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed text-sm">
+                                <i class="fa-solid fa-dice mr-2"></i> Lempar Dadu
+                            </button>
+                            <button id="btn-end-turn" onclick="nextTurn()" disabled class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2.5 px-4 rounded-lg shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed text-sm">
+                                Selesai
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sync Status Indicator -->
+                    <div class="flex justify-between items-center text-[10px] text-slate-400 px-2">
+                        <span><i class="fa-solid fa-circle text-emerald-500 text-[8px] mr-1"></i> Standard Mode</span>
+                        <span id="sync-status"><i class="fa-solid fa-database mr-1"></i> AppsScript: Ready</span>
+                    </div>
+                </div>
+
+                <!-- Tiles generated dynamically by JavaScript -->
+            </div>
+        </section>
+
+        <!-- Right Side: Dashboard & Game Logs -->
+        <section class="lg:col-span-5 xl:col-span-5 flex flex-col gap-4">
+            
+            <!-- Players Dashboard -->
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-users text-indigo-400"></i> Status Pemain
+                </h3>
+                <div id="players-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- Cards generated dynamically -->
+                </div>
+            </div>
+
+            <!-- Game Activity Log -->
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg flex-1 flex flex-col h-64 sm:h-80">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center justify-between">
+                    <span><i class="fa-solid fa-list-ul text-emerald-400 mr-2"></i> Riwayat Game</span>
+                    <button onclick="clearLogs()" class="text-xs text-slate-400 hover:text-slate-200">Clear</button>
+                </h3>
+                <div id="game-logs" class="flex-1 overflow-y-auto space-y-2 text-xs pr-1 font-mono">
+                    <!-- Logs generated dynamically -->
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Buy Property Modal -->
+    <div id="modal-buy" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center transform transition-all scale-100">
+            <div class="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
+                <i class="fa-solid fa-building-circle-check"></i>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-1">Beli Properti?</h3>
+            <p id="modal-prop-name" class="text-sm text-slate-400 mb-4">Nama Properti</p>
+            
+            <div class="bg-slate-800 p-3 rounded-lg text-left text-xs text-slate-300 mb-4 space-y-1 border border-slate-700">
+                <div class="flex justify-between"><span>Harga:</span> <span id="modal-prop-price" class="font-bold text-emerald-400">$0</span></div>
+                <div class="flex justify-between"><span>Sewa Dasar:</span> <span id="modal-prop-rent" class="font-bold text-slate-200">$0</span></div>
+            </div>
+
+            <div class="flex gap-2">
+                <button onclick="confirmBuyProperty(true)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-sm transition">Beli</button>
+                <button onclick="confirmBuyProperty(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-2 rounded-lg text-sm transition">Lewati</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Setup / Configuration Modal -->
+    <div id="modal-setup" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-md w-full shadow-2xl text-slate-200">
+            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-sliders text-indigo-400"></i> Pengaturan Game & Integration
+            </h3>
+            
+            <div class="space-y-4 text-xs">
+                <!-- Apps Script URL -->
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-300">Google Apps Script Web App URL (Optional):</label>
+                    <input type="text" id="setup-script-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-indigo-500">
+                    <p class="text-[10px] text-slate-400 mt-1">Digunakan untuk mengirim log aktivitas ke Google Sheets (Code.gs).</p>
+                </div>
+
+                <!-- Player Setup -->
+                <div class="border-t border-slate-800 pt-3">
+                    <label class="block font-semibold mb-2 text-slate-300">Tipe Pemain:</label>
+                    <div class="space-y-2" id="setup-players-container">
+                        <!-- Player Types dynamically populated -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 mt-6">
+                <button onclick="saveSetup()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-lg text-sm transition">Simpan & Mulai Ulang</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS Logic -->
+    <script>
+        // --- DATA MAP & TILES MONOPOLY ---
+        const TILES_DATA = [
+            { id: 0, name: "START", type: "start", price: 0, color: "bg-slate-300" },
+            { id: 1, name: "Monas", type: "property", price: 60, rent: 6, color: "bg-amber-800" },
+            { id: 2, name: "Dana Umum", type: "chest", price: 0, color: "bg-slate-200" },
+            { id: 3, name: "Kota Tua", type: "property", price: 60, rent: 6, color: "bg-amber-800" },
+            { id: 4, name: "Pajak Jalan", type: "tax", price: 100, color: "bg-slate-200" },
+            { id: 5, name: "Ancol", type: "property", price: 100, rent: 10, color: "bg-sky-400" },
+            { id: 6, name: "Kesempatan", type: "chance", price: 0, color: "bg-slate-200" },
+            { id: 7, name: "Taman Mini", type: "property", price: 100, rent: 10, color: "bg-sky-400" },
+            { id: 8, name: "Ragunan", type: "property", price: 120, rent: 12, color: "bg-sky-400" },
+            { id: 9, name: "Penjara", type: "jail", price: 0, color: "bg-slate-300" },
+            { id: 10, name: "Malioboro", type: "property", price: 140, rent: 14, color: "bg-pink-500" },
+            { id: 11, name: "Prambanan", type: "property", price: 140, rent: 14, color: "bg-pink-500" },
+            { id: 12, name: "PLN", type: "utility", price: 150, rent: 15, color: "bg-slate-200" },
+            { id: 13, name: "Borobudur", type: "property", price: 160, rent: 16, color: "bg-pink-500" },
+            { id: 14, name: "Kuta Beach", type: "property", price: 180, rent: 18, color: "bg-orange-500" },
+            { id: 15, name: "Dana Umum", type: "chest", price: 0, color: "bg-slate-200" },
+            { id: 16, name: "Ubud", type: "property", price: 180, rent: 18, color: "bg-orange-500" },
+            { id: 17, name: "Tanah Lot", type: "property", price: 200, rent: 20, color: "bg-orange-500" },
+            { id: 18, name: "Parkir Gratis", type: "rest", price: 0, color: "bg-slate-300" },
+            { id: 19, name: "Bromo", type: "property", price: 220, rent: 22, color: "bg-red-500" },
+            { id: 20, name: "Kesempatan", type: "chance", price: 0, color: "bg-slate-200" },
+            { id: 21, name: "Ijen", type: "property", price: 220, rent: 22, color: "bg-red-500" },
+            { id: 22, name: "Batu Malang", type: "property", price: 240, rent: 24, color: "bg-red-500" },
+            { id: 23, name: "Danau Toba", type: "property", price: 260, rent: 26, color: "bg-yellow-500" },
+            { id: 24, name: "PDAM", type: "utility", price: 150, rent: 15, color: "bg-slate-200" },
+            { id: 25, name: "Brastagi", type: "property", price: 260, rent: 26, color: "bg-yellow-500" },
+            { id: 26, name: "Banda Aceh", type: "property", price: 280, rent: 28, color: "bg-yellow-500" },
+            { id: 27, name: "Ke Penjara", type: "gotojail", price: 0, color: "bg-slate-300" },
+            { id: 28, name: "Raja Ampat", type: "property", price: 300, rent: 30, color: "bg-emerald-600" },
+            { id: 29, name: "Labuan Bajo", type: "property", price: 300, rent: 30, color: "bg-emerald-600" },
+            { id: 30, name: "Dana Umum", type: "chest", price: 0, color: "bg-slate-200" },
+            { id: 31, name: "Toraja", type: "property", price: 320, rent: 32, color: "bg-emerald-600" },
+            { id: 32, name: "Bunaken", type: "property", price: 350, rent: 35, color: "bg-blue-700" },
+            { id: 33, name: "Pajak Mewah", type: "tax", price: 150, color: "bg-slate-200" },
+            { id: 34, name: "IKN Nusantara", type: "property", price: 400, rent: 40, color: "bg-blue-700" },
+            { id: 35, name: "Kesempatan", type: "chance", price: 0, color: "bg-slate-200" }
+        ];
+
+        // Grid Position Coordinates Mapping for 36 Tiles (4x10 grid perimeter)
+        const BOARD_POSITIONS = [
+            { r: 11, c: 11 }, { r: 11, c: 10 }, { r: 11, c: 9 }, { r: 11, c: 8 }, { r: 11, c: 7 }, { r: 11, c: 6 }, { r: 11, c: 5 }, { r: 11, c: 4 }, { r: 11, c: 3 }, { r: 11, c: 2 },
+            { r: 11, c: 1 },  { r: 10, c: 1 },  { r: 9, c: 1 },  { r: 8, c: 1 },  { r: 7, c: 1 },  { r: 6, c: 1 },  { r: 5, c: 1 },  { r: 4, c: 1 },  { r: 3, c: 1 },  { r: 2, c: 1 },
+            { r: 1, c: 1 },   { r: 1, c: 2 },   { r: 1, c: 3 },   { r: 1, c: 4 },   { r: 1, c: 5 },   { r: 1, c: 6 },   { r: 1, c: 7 },   { r: 1, c: 8 },   { r: 1, c: 9 },   { r: 1, c: 10 },
+            { r: 1, c: 11 },  { r: 2, c: 11 },  { r: 3, c: 11 },  { r: 4, c: 11 },  { r: 5, c: 11 },  { r: 6, c: 11 }
+        ];
+
+        // Player Initial Colors & Setup
+        let players = [
+            { id: 1, name: "Pemain 1", color: "#ef4444", money: 1500, pos: 0, isAi: false, properties: [] },
+            { id: 2, name: "Bot Alfa", color: "#3b82f6", money: 1500, pos: 0, isAi: true, properties: [] },
+            { id: 3, name: "Bot Beta", color: "#10b981", money: 1500, pos: 0, isAi: true, properties: [] },
+            { id: 4, name: "Bot Gamma", color: "#f59e0b", money: 1500, pos: 0, isAi: true, properties: [] }
+        ];
+
+        let state = {
+            currentTurnIndex: 0,
+            isRolling: false,
+            ownership: {}, // property_id -> player_id
+            appsScriptUrl: ""
+        };
+
+        // --- APPS SCRIPT INTEGRATION HELPER ---
+        const GoogleSheetSync = {
+            async logActivity(action, details) {
+                if (!state.appsScriptUrl) return;
+                
+                const payload = {
+                    timestamp: new Date().toISOString(),
+                    player: players[state.currentTurnIndex].name,
+                    action: action,
+                    details: details
+                };
+
+                try {
+                    await fetch(state.appsScriptUrl, {
+                        method: "POST",
+                        mode: "no-cors",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+                    document.getElementById('sync-status').innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i> Synced`;
+                } catch (err) {
+                    console.warn("Apps Script Sync failed:", err);
+                    document.getElementById('sync-status').innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Sync Error`;
+                }
+            }
+        };
+
+        // --- INIT GAME ---
+        window.onload = () => {
+            renderBoard();
+            renderPlayersDashboard();
+            updateTurnDisplay();
+            addLog("Permainan dimulai! Selamat bermain.");
+        };
+
+        // Render Monopoly Tiles Layout dynamically
+        function renderBoard() {
+            const boardEl = document.getElementById('board');
+            
+            TILES_DATA.forEach((tile, idx) => {
+                const pos = BOARD_POSITIONS[idx];
+                const tileEl = document.createElement('div');
+                tileEl.className = 'tile text-slate-800 font-semibold';
+                tileEl.style.gridRow = pos.r;
+                tileEl.style.gridColumn = pos.c;
+                tileEl.id = `tile-${idx}`;
+
+                // Design Header Colors depending on Tile Type
+                let headerClass = tile.color;
+                
+                if (tile.type === 'property') {
+                    tileEl.innerHTML = `
+                        <div class="tile-header ${headerClass}"></div>
+                        <div class="px-1 py-0.5 truncate w-full font-bold">${tile.name}</div>
+                        <div class="text-[9px] text-slate-500 mb-0.5">$${tile.price}</div>
+                        <div class="tokens-container" id="tokens-${idx}"></div>
+                    `;
+                } else {
+                    let icon = "fa-map-pin";
+                    if (tile.type === "start") icon = "fa-flag-checkered text-emerald-600";
+                    if (tile.type === "jail") icon = "fa-lock text-slate-600";
+                    if (tile.type === "chance") icon = "fa-question text-amber-500";
+                    if (tile.type === "chest") icon = "fa-box-open text-blue-500";
+                    if (tile.type === "gotojail") icon = "fa-handcuffs text-rose-600";
+                    if (tile.type === "tax") icon = "fa-receipt text-red-500";
+
+                    tileEl.innerHTML = `
+                        <div class="flex-1 flex flex-col justify-center items-center">
+                            <i class="fa-solid ${icon} mb-0.5"></i>
+                            <span class="leading-tight">${tile.name}</span>
+                        </div>
+                        <div class="tokens-container" id="tokens-${idx}"></div>
+                    `;
+                }
+
+                boardEl.appendChild(tileEl);
+            });
+
+            updatePlayerTokens();
+        }
+
+        // --- PLAYER TOKENS DISPLAY ---
+        function updatePlayerTokens() {
+            // Clear existing tokens
+            TILES_DATA.forEach((_, idx) => {
+                const container = document.getElementById(`tokens-${idx}`);
+                if (container) container.innerHTML = '';
+            });
+
+            // Append tokens to current tile positions
+            players.forEach(player => {
+                const container = document.getElementById(`tokens-${player.pos}`);
+                if (container) {
+                    const token = document.createElement('div');
+                    token.className = 'player-token';
+                    token.style.backgroundColor = player.color;
+                    token.title = `${player.name}`;
+                    container.appendChild(token);
+                }
+            });
+        }
+
+        // --- GAME LOGIC & ROLLING DICE ---
+        function handleRollDice() {
+            if (state.isRolling) return;
+            state.isRolling = true;
+            document.getElementById('btn-roll').disabled = true;
+
+            const d1El = document.getElementById('dice-1');
+            const d2El = document.getElementById('dice-2');
+
+            // Dice roll animation effect
+            let rolls = 0;
+            const interval = setInterval(() => {
+                const temp1 = Math.floor(Math.random() * 6) + 1;
+                const temp2 = Math.floor(Math.random() * 6) + 1;
+                d1El.innerText = temp1;
+                d2El.innerText = temp2;
+                rolls++;
+
+                if (rolls >= 10) {
+                    clearInterval(interval);
+                    const dice1 = Math.floor(Math.random() * 6) + 1;
+                    const dice2 = Math.floor(Math.random() * 6) + 1;
+                    d1El.innerText = dice1;
+                    d2El.innerText = dice2;
+                    
+                    const totalStep = dice1 + dice2;
+                    const currentPlayer = players[state.currentTurnIndex];
+
+                    addLog(`${currentPlayer.name} melempar dadu: <b>${dice1} + ${dice2} = ${totalStep}</b>`);
+                    GoogleSheetSync.logActivity("Roll Dice", `Rolled ${totalStep}`);
+
+                    movePlayer(currentPlayer, totalStep);
+                }
+            }, 50);
+        }
+
+        function movePlayer(player, steps) {
+            let currentPos = player.pos;
+            let targetPos = (currentPos + steps) % TILES_DATA.length;
+
+            // Check if passed START tile
+            if (currentPos + steps >= TILES_DATA.length) {
+                player.money += 200;
+                addLog(`🎉 ${player.name} melewati START dan mendapat bonus <b>$200</b>!`);
+                renderPlayersDashboard();
+            }
+
+            player.pos = targetPos;
+            updatePlayerTokens();
+
+            setTimeout(() => {
+                handleTileAction(player, TILES_DATA[targetPos]);
+            }, 400);
+        }
+
+        // --- TILE ACTIONS (BUY, RENT, SPECIAL TILES) ---
+        function handleTileAction(player, tile) {
+            addLog(`${player.name} mendarat di <b>${tile.name}</b>.`);
+
+            if (tile.type === 'property' || tile.type === 'utility') {
+                const ownerId = state.ownership[tile.id];
+
+                if (!ownerId) {
+                    // Property is unowned
+                    if (player.isAi) {
+                        // AI Decision Logic
+                        if (player.money >= tile.price + 100) {
+                            buyProperty(player, tile);
+                        } else {
+                            addLog(`${player.name} (AI) memutuskan tidak membeli ${tile.name}.`);
+                            finishAction();
+                        }
+                    } else {
+                        // Human Player Modal Prompt
+                        showBuyModal(tile);
+                    }
+                    return;
+                } else if (ownerId !== player.id) {
+                    // Pay Rent to Owner
+                    const owner = players.find(p => p.id === ownerId);
+                    const rentAmount = tile.rent || 10;
+                    
+                    player.money -= rentAmount;
+                    owner.money += rentAmount;
+                    
+                    addLog(`💸 ${player.name} membayar sewa <b>$${rentAmount}</b> kepada ${owner.name}.`);
+                    GoogleSheetSync.logActivity("Pay Rent", `Paid $${rentAmount} to ${owner.name}`);
+                    renderPlayersDashboard();
+                }
+            } else if (tile.type === 'tax') {
+                player.money -= tile.price;
+                addLog(`💸 ${player.name} membayar Pajak sebesar <b>$${tile.price}</b>.`);
+                renderPlayersDashboard();
+            } else if (tile.type === 'gotojail') {
+                player.pos = 9; // Jail position
+                addLog(`🚨 ${player.name} dikirim langsung ke Penjara!`);
+                updatePlayerTokens();
+            } else if (tile.type === 'chance' || tile.type === 'chest') {
+                const bonus = (Math.floor(Math.random() * 5) + 1) * 20;
+                player.money += bonus;
+                addLog(`🎁 ${player.name} dapat Keberuntungan/Bonus sebesar <b>$${bonus}</b>!`);
+                renderPlayersDashboard();
+            }
+
+            finishAction();
+        }
+
+        function showBuyModal(tile) {
+            document.getElementById('modal-prop-name').innerText = tile.name;
+            document.getElementById('modal-prop-price').innerText = `$${tile.price}`;
+            document.getElementById('modal-prop-rent').innerText = `$${tile.rent || 10}`;
+            document.getElementById('modal-buy').classList.remove('hidden');
+        }
+
+        function confirmBuyProperty(isBuying) {
+            document.getElementById('modal-buy').classList.add('hidden');
+            const player = players[state.currentTurnIndex];
+            const tile = TILES_DATA[player.pos];
+
+            if (isBuying) {
+                if (player.money >= tile.price) {
+                    buyProperty(player, tile);
+                } else {
+                    addLog(`❌ Uang ${player.name} tidak cukup untuk membeli ${tile.name}.`);
+                }
+            } else {
+                addLog(`${player.name} melewati kesempatan membeli ${tile.name}.`);
+            }
+
+            finishAction();
+        }
+
+        function buyProperty(player, tile) {
+            player.money -= tile.price;
+            player.properties.push(tile.name);
+            state.ownership[tile.id] = player.id;
+
+            // Highlight property tile border with player color
+            const tileEl = document.getElementById(`tile-${tile.id}`);
+            if (tileEl) {
+                tileEl.style.boxShadow = `inset 0 0 0 3px ${player.color}`;
+            }
+
+            addLog(`🏠 ${player.name} berhasil membeli <b>${tile.name}</b> seharga <b>$${tile.price}</b>!`);
+            GoogleSheetSync.logActivity("Buy Property", `Bought ${tile.name} for $${tile.price}`);
+            renderPlayersDashboard();
+        }
+
+        function finishAction() {
+            state.isRolling = false;
+            const currentPlayer = players[state.currentTurnIndex];
+
+            if (currentPlayer.isAi) {
+                // Auto next turn for AI
+                setTimeout(() => nextTurn(), 1200);
+            } else {
+                document.getElementById('btn-end-turn').disabled = false;
+            }
+        }
+
+        // --- TURN MANAGEMENT ---
+        function nextTurn() {
+            document.getElementById('btn-end-turn').disabled = true;
+            state.currentTurnIndex = (state.currentTurnIndex + 1) % players.length;
+            updateTurnDisplay();
+
+            const currentPlayer = players[state.currentTurnIndex];
+            if (currentPlayer.isAi) {
+                document.getElementById('btn-roll').disabled = true;
+                setTimeout(() => handleRollDice(), 800);
+            } else {
+                document.getElementById('btn-roll').disabled = false;
+            }
+        }
+
+        function updateTurnDisplay() {
+            const currentPlayer = players[state.currentTurnIndex];
+            document.getElementById('current-player-name').innerText = `${currentPlayer.name} ${currentPlayer.isAi ? '(BOT)' : ''}`;
+            document.getElementById('player-indicator-dot').style.backgroundColor = currentPlayer.color;
+        }
+
+        // --- DASHBOARD & LOGS UI ---
+        function renderPlayersDashboard() {
+            const listEl = document.getElementById('players-list');
+            listEl.innerHTML = '';
+
+            players.forEach((p, idx) => {
+                const isCurrent = idx === state.currentTurnIndex;
+                const card = document.createElement('div');
+                card.className = `p-3 rounded-xl border transition ${isCurrent ? 'bg-slate-700/80 border-indigo-500 ring-2 ring-indigo-500/50' : 'bg-slate-900/50 border-slate-700'}`;
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-bold text-xs flex items-center gap-1.5" style="color:${p.color}">
+                            <i class="fa-solid fa-circle text-[10px]"></i> ${p.name}
+                        </span>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded ${p.isAi ? 'bg-slate-700 text-slate-300' : 'bg-indigo-900/80 text-indigo-200'} font-semibold">
+                            ${p.isAi ? 'BOT' : 'PLAYER'}
+                        </span>
+                    </div>
+                    <div class="text-sm font-extrabold text-white mb-1">$${p.money}</div>
+                    <div class="text-[10px] text-slate-400 truncate">Aset (${p.properties.length}): ${p.properties.length > 0 ? p.properties.join(', ') : 'Belum ada'}</div>
+                `;
+                listEl.appendChild(card);
+            });
+        }
+
+        function addLog(msg) {
+            const container = document.getElementById('game-logs');
+            const time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            const logItem = document.createElement('div');
+            logItem.className = 'bg-slate-900/60 p-2 rounded border border-slate-800 text-slate-300 text-[11px] leading-relaxed';
+            logItem.innerHTML = `<span class="text-slate-500 text-[10px] mr-1">[${time}]</span> ${msg}`;
+            
+            container.appendChild(logItem);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('game-logs').innerHTML = '';
+        }
+
+        // --- SETUP MODAL CONTROLS ---
+        function toggleSetupModal() {
+            const modal = document.getElementById('modal-setup');
+            if (modal.classList.contains('hidden')) {
+                // Populate options
+                const container = document.getElementById('setup-players-container');
+                container.innerHTML = players.map((p, i) => `
+                    <div class="flex items-center justify-between bg-slate-800 p-2 rounded border border-slate-700">
+                        <span class="font-semibold" style="color:${p.color}">${p.name}</span>
+                        <select id="setup-p-type-${i}" class="bg-slate-900 border border-slate-700 rounded text-xs p-1 text-white">
+                            <option value="human" ${!p.isAi ? 'selected' : ''}>Pemain Manusia</option>
+                            <option value="bot" ${p.isAi ? 'selected' : ''}>AI (Bot)</option>
+                        </select>
+                    </div>
+                `).join('');
+                
+                document.getElementById('setup-script-url').value = state.appsScriptUrl;
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function saveSetup() {
+            players.forEach((p, i) => {
+                const val = document.getElementById(`setup-p-type-${i}`).value;
+                p.isAi = (val === 'bot');
+            });
+            state.appsScriptUrl = document.getElementById('setup-script-url').value.trim();
+            
+            document.getElementById('modal-setup').classList.add('hidden');
+            addLog("Pengaturan pemain diperbarui.");
+            resetGame();
+        }
+
+        function resetGame() {
+            players.forEach(p => {
+                p.money = 1500;
+                p.pos = 0;
+                p.properties = [];
+            });
+            state.currentTurnIndex = 0;
+            state.isRolling = false;
+            state.ownership = {};
+
+            // Clear Tile highlights
+            TILES_DATA.forEach(t => {
+                const tileEl = document.getElementById(`tile-${t.id}`);
+                if (tileEl) tileEl.style.boxShadow = 'none';
+            });
+
+            updatePlayerTokens();
+            renderPlayersDashboard();
+            updateTurnDisplay();
+            addLog("🔄 Permainan di-reset.");
+            document.getElementById('btn-roll').disabled = false;
+            document.getElementById('btn-end-turn').disabled = true;
+        }
+    </script>
+</body>
+</html>
