@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monopoly Mini - 3D Pawn & Building Edition</title>
+    <title>Monopoly Mini - Person Pawn & Cards Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -46,75 +46,55 @@
         }
 
         /* ----------------------------------------------------
-           3D CONE PAWN STYLING
+           HUMAN / PERSON AVATAR PAWN STYLING (3D Styled)
         ---------------------------------------------------- */
-        .pawn-wrapper {
+        .person-pawn {
             position: relative;
-            width: 16px;
+            width: 18px;
             height: 22px;
-            display: inline-block;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
             filter: drop-shadow(0px 3px 3px rgba(0,0,0,0.6));
             transition: transform 0.15s ease-in-out;
+            cursor: pointer;
         }
 
-        .pawn-wrapper:hover {
-            transform: scale(1.2) translateY(-2px);
+        .person-pawn:hover {
+            transform: scale(1.25) translateY(-3px);
         }
 
-        /* The 3D Cone effect using CSS borders & radial overlays */
-        .pawn-cone {
-            width: 0;
-            height: 0;
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-bottom: 18px solid var(--pawn-color, #ef4444);
+        /* Head of Pawn */
+        .pawn-head {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffffff 0%, var(--pawn-color) 70%);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            z-index: 2;
+        }
+
+        /* Body / Torso of Pawn */
+        .pawn-body {
+            width: 15px;
+            height: 11px;
+            background: linear-gradient(180deg, var(--pawn-color) 0%, var(--pawn-color-dark) 100%);
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            border-bottom-left-radius: 3px;
+            border-bottom-right-radius: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            margin-top: -3px;
             position: relative;
-            margin: 0 auto;
         }
 
-        /* Highlights & shading on the cone for 3D depth */
-        .pawn-cone::before {
-            content: '';
-            position: absolute;
-            left: -8px;
-            top: 0;
-            width: 8px;
-            height: 18px;
-            background: linear-gradient(90deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 100%);
-            clip-path: polygon(100% 0, 0 100%, 100% 100%);
-        }
-
-        /* Top Sphere Tip */
-        .pawn-tip {
-            width: 6px;
-            height: 6px;
-            background: var(--pawn-color-light, #fca5a5);
-            border-radius: 50%;
-            position: absolute;
-            top: -2px;
-            left: 50%;
-            transform: translateX(-50%);
-            box-shadow: inset -1px -1px 2px rgba(0,0,0,0.4);
-        }
-
-        /* Base Ring */
-        .pawn-base {
-            width: 14px;
-            height: 4px;
-            background: var(--pawn-color-dark, #991b1b);
-            border-radius: 50%;
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            box-shadow: 0 2px 2px rgba(0,0,0,0.4);
-        }
-
-        /* Color variations for pawns */
-        .pawn-p1 { --pawn-color: #ef4444; --pawn-color-light: #fca5a5; --pawn-color-dark: #991b1b; }
-        .pawn-p2 { --pawn-color: #3b82f6; --pawn-color-light: #93c5fd; --pawn-color-dark: #1e40af; }
-        .pawn-p3 { --pawn-color: #10b981; --pawn-color-light: #6ee7b7; --pawn-color-dark: #065f46; }
-        .pawn-p4 { --pawn-color: #f59e0b; --pawn-color-light: #fde68a; --pawn-color-dark: #92400e; }
+        /* Color variations for Pawns */
+        .pawn-p1 { --pawn-color: #ef4444; --pawn-color-dark: #991b1b; }
+        .pawn-p2 { --pawn-color: #3b82f6; --pawn-color-dark: #1e40af; }
+        .pawn-p3 { --pawn-color: #10b981; --pawn-color-dark: #065f46; }
+        .pawn-p4 { --pawn-color: #f59e0b; --pawn-color-dark: #92400e; }
 
         /* ----------------------------------------------------
            3D HOUSE / BUILDING MARKER STYLING
@@ -141,6 +121,16 @@
         @keyframes popIn {
             0% { transform: scale(0); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Card Flip Animation for Chance / Chest */
+        .card-flip {
+            animation: flipIn 0.5s ease-out forwards;
+        }
+
+        @keyframes flipIn {
+            0% { transform: rotateY(90deg) scale(0.8); opacity: 0; }
+            100% { transform: rotateY(0deg) scale(1); opacity: 1; }
         }
 
         /* Timer Progress Transition */
@@ -181,7 +171,7 @@
                         <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-0.5">Giliran Saat Ini</p>
                         
                         <h2 id="current-player-name" class="text-base sm:text-lg font-black text-indigo-400 flex items-center justify-center gap-2">
-                            <span class="pawn-wrapper pawn-p1 scale-75 inline-block"><span class="pawn-tip"></span><span class="pawn-cone"></span><span class="pawn-base"></span></span>
+                            <span class="person-pawn pawn-p1 scale-75 inline-flex"><span class="pawn-head"></span><span class="pawn-body"></span></span>
                             <span>Pemain 1</span>
                         </h2>
 
@@ -216,7 +206,7 @@
                     <!-- Bottom Bar Status -->
                     <div class="w-full flex justify-between items-center text-[10px] text-slate-500 pt-2 border-t border-slate-800/80">
                         <span id="sheet-status-text"><i class="fa-solid fa-cloud-arrow-up text-indigo-400"></i> AppsScript: Ready</span>
-                        <span>3D Cone & Building Mode</span>
+                        <span>Person Pawn & Card System</span>
                     </div>
                 </div>
             </div>
@@ -234,7 +224,7 @@
                         <div class="bg-indigo-600 w-8 h-8 rounded-lg flex items-center justify-center font-extrabold text-base shadow-md shadow-indigo-500/30">M</div>
                         <div>
                             <h1 class="font-bold text-sm leading-none tracking-tight text-white">Monopoly Mini</h1>
-                            <p class="text-[10px] text-slate-400 mt-0.5">3D Pawn & Building Sync</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">3D Person Pawns & Cards Sync</p>
                         </div>
                     </div>
                     
@@ -292,7 +282,22 @@
         </div>
     </div>
 
-    <!-- Modal Settings & Code.gs Preview -->
+    <!-- Modal Card (Kesempatan / Dana Umum) -->
+    <div id="modal-card" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div id="card-box" class="bg-slate-900 border border-slate-700 p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl relative card-flip">
+            <div id="card-icon-wrapper" class="w-14 h-14 rounded-full flex items-center justify-center text-2xl mx-auto mb-3 bg-amber-500/20 text-amber-400">
+                <i id="card-icon" class="fa-solid fa-question"></i>
+            </div>
+            <p id="card-type-label" class="text-[10px] uppercase font-bold tracking-widest text-amber-400 mb-1">KESEMPATAN</p>
+            <h3 class="text-lg font-black text-white mb-2" id="card-title">Judul Kartu</h3>
+            <p class="text-xs text-slate-300 leading-relaxed mb-5 bg-slate-950/60 p-3 rounded-xl border border-slate-800" id="card-desc">Deskripsi efek kartu yang didapatkan.</p>
+            <button onclick="closeCardModal()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-lg shadow-indigo-600/30">
+                Lanjutkan
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Settings -->
     <div id="modal-settings" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-md w-full shadow-2xl">
             <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
@@ -378,6 +383,24 @@
             { id: 39, name: "IKN Nusantara", type: "property", price: 400, rent: 70, color: "bg-blue-700" }
         ];
 
+        /* KARTU KESEMPATAN (CHANCE) */
+        const CHANCE_CARDS = [
+            { title: "Dividen Investasi", desc: "Pasar saham melonjak tinggi! Kamu mendapat deviden sebesar $150.", action: (p) => { p.money += 150; } },
+            { title: "Tilang Kecepatan", desc: "Mengebut di jalan tol! Bayar denda tilang sebesar $50.", action: (p) => { p.money -= 50; } },
+            { title: "Liburan Singkat", desc: "Terbang langsung ke Parkir Gratis!", action: (p) => { p.pos = 20; updateTokens(); } },
+            { title: "Tertangkap Polisi", desc: "Langsung pergi ke Penjara tanpa melewati START!", action: (p) => { p.pos = 10; updateTokens(); } },
+            { title: "Bonus Ulang Tahun", desc: "Selamat ulang tahun! Kamu mendapat hadiah $100.", action: (p) => { p.money += 100; } }
+        ];
+
+        /* KARTU DANA UMUM (COMMUNITY CHEST) */
+        const CHEST_CARDS = [
+            { title: "Pengembalian Pajak", desc: "Ada kelebihan pembayaran pajak. Terima pengembalian dana $100.", action: (p) => { p.money += 100; } },
+            { title: "Biaya Rumah Sakit", desc: "Tagihan medis darurat! Bayar biaya rumah sakit $75.", action: (p) => { p.money -= 75; } },
+            { title: "Juara Kontes", desc: "Memenangkan juara pertama perlombaan lokal! Dapatkan $50.", action: (p) => { p.money += 50; } },
+            { title: "Maju ke START", desc: "Meluncur langsung ke petak START dan dapatkan $200!", action: (p) => { p.pos = 0; p.money += 200; updateTokens(); } },
+            { title: "Renovasi Rumah", desc: "Perbaikan fasilitas! Bayar biaya pemeliharaan $40.", action: (p) => { p.money -= 40; } }
+        ];
+
         window.onload = () => {
             renderBoard();
             renderPlayerCards();
@@ -434,7 +457,7 @@
                 card.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
                         <div class="flex items-center gap-1.5">
-                            <span class="pawn-wrapper ${p.pawnClass} scale-50 -ml-1"><span class="pawn-tip"></span><span class="pawn-cone"></span><span class="pawn-base"></span></span>
+                            <span class="person-pawn ${p.pawnClass} scale-50 -ml-1 inline-flex"><span class="pawn-head"></span><span class="pawn-body"></span></span>
                             <span class="font-bold text-xs text-white">${p.name}</span>
                         </div>
                         <span class="text-[9px] px-1.5 py-0.2 rounded ${p.isBot ? 'bg-slate-800 text-slate-400' : 'bg-indigo-500/20 text-indigo-300 font-bold'}">${p.isBot ? 'BOT' : 'P1'}</span>
@@ -446,16 +469,16 @@
             });
         }
 
-        /* Render 3D Cone Pawns onto Board Tiles */
+        /* Render 3D Person Pawns onto Board Tiles */
         function updateTokens() {
             document.querySelectorAll('.token-container').forEach(c => c.innerHTML = '');
             PLAYERS.forEach((p) => {
                 const tileEl = document.querySelector(`#tile-${p.pos} .token-container`);
                 if (tileEl) {
                     const pawn = document.createElement('div');
-                    pawn.className = `pawn-wrapper ${p.pawnClass}`;
+                    pawn.className = `person-pawn ${p.pawnClass}`;
                     pawn.title = p.name;
-                    pawn.innerHTML = `<span class="pawn-tip"></span><span class="pawn-cone"></span><span class="pawn-base"></span>`;
+                    pawn.innerHTML = `<span class="pawn-head"></span><span class="pawn-body"></span>`;
                     tileEl.appendChild(pawn);
                 }
             });
@@ -598,6 +621,9 @@
                     owner.money += rent;
                     addLog(player.name, `💸 bayar sewa $${rent} ke ${owner.name}.`);
                 }
+            } else if (tile.type === 'chance' || tile.type === 'chest') {
+                triggerRandomCard(player, tile.type);
+                return;
             } else if (tile.type === 'tax') {
                 player.money -= tile.amount;
                 addLog(player.name, `💸 bayar ${tile.name} $${tile.amount}.`);
@@ -608,6 +634,51 @@
             }
 
             renderPlayerCards();
+            finishStep();
+        }
+
+        /* Feature Acak Kartu Dana Umum & Kesempatan */
+        function triggerRandomCard(player, type) {
+            const isChance = type === 'chance';
+            const deck = isChance ? CHANCE_CARDS : CHEST_CARDS;
+            const card = deck[Math.floor(Math.random() * deck.length)];
+
+            card.action(player);
+            addLog(player.name, `mengambil kartu ${isChance ? 'Kesempatan' : 'Dana Umum'}: "<b>${card.title}</b>"`);
+
+            // Setup Card Modal UI
+            const modal = document.getElementById('modal-card');
+            const iconWrapper = document.getElementById('card-icon-wrapper');
+            const icon = document.getElementById('card-icon');
+            const typeLabel = document.getElementById('card-type-label');
+
+            if (isChance) {
+                iconWrapper.className = "w-14 h-14 rounded-full flex items-center justify-center text-2xl mx-auto mb-3 bg-amber-500/20 text-amber-400 border border-amber-500/30";
+                icon.className = "fa-solid fa-question";
+                typeLabel.innerText = "KESEMPATAN";
+                typeLabel.className = "text-[10px] uppercase font-bold tracking-widest text-amber-400 mb-1";
+            } else {
+                iconWrapper.className = "w-14 h-14 rounded-full flex items-center justify-center text-2xl mx-auto mb-3 bg-sky-500/20 text-sky-400 border border-sky-500/30";
+                icon.className = "fa-solid fa-box-archive";
+                typeLabel.innerText = "DANA UMUM";
+                typeLabel.className = "text-[10px] uppercase font-bold tracking-widest text-sky-400 mb-1";
+            }
+
+            document.getElementById('card-title').innerText = card.title;
+            document.getElementById('card-desc').innerText = card.desc;
+
+            modal.classList.remove('hidden');
+            renderPlayerCards();
+
+            if (player.isBot) {
+                setTimeout(() => {
+                    closeCardModal();
+                }, 2000);
+            }
+        }
+
+        function closeCardModal() {
+            document.getElementById('modal-card').classList.add('hidden');
             finishStep();
         }
 
@@ -653,7 +724,7 @@
             const curPlayer = PLAYERS[currentPlayerIndex];
             const nameEl = document.getElementById('current-player-name');
             nameEl.innerHTML = `
-                <span class="pawn-wrapper ${curPlayer.pawnClass} scale-75 inline-block"><span class="pawn-tip"></span><span class="pawn-cone"></span><span class="pawn-base"></span></span>
+                <span class="person-pawn ${curPlayer.pawnClass} scale-75 inline-flex"><span class="pawn-head"></span><span class="pawn-body"></span></span>
                 <span>${curPlayer.name} ${curPlayer.isBot ? '(Bot)' : ''}</span>
             `;
 
