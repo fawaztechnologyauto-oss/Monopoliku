@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monopoli Simple Web Edition</title>
-    <!-- Tailwind CSS for UI styling -->
+    <title>Monopoly Simple Web Edition</title>
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -25,7 +25,7 @@
             aspect-ratio: 1 / 1;
             width: 100%;
             max-width: 720px;
-            background-color: #e2e8f0;
+            background-color: #cbd5e1;
             border: 4px solid #334155;
             border-radius: 12px;
             overflow: hidden;
@@ -34,7 +34,7 @@
 
         .tile {
             background-color: #f8fafc;
-            border: 1px solid #cbd5e1;
+            border: 1px solid #94a3b8;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -51,13 +51,13 @@
             .tile { font-size: 0.65rem; }
         }
 
-        /* Property Color Headers for Top, Bottom, Left, Right */
+        /* Property Color Headers */
         .tile-header-top { width: 100%; height: 22%; border-bottom: 1px solid rgba(0,0,0,0.1); }
         .tile-header-bottom { width: 100%; height: 22%; border-top: 1px solid rgba(0,0,0,0.1); margin-top: auto; }
         .tile-header-left { height: 100%; width: 22%; border-right: 1px solid rgba(0,0,0,0.1); }
         .tile-header-right { height: 100%; width: 22%; border-left: 1px solid rgba(0,0,0,0.1); margin-left: auto; }
 
-        /* Player Tokens Styling */
+        /* Player Tokens */
         .tokens-container {
             position: absolute;
             inset: 0;
@@ -84,10 +84,10 @@
             .player-token { width: 18px; height: 18px; }
         }
 
-        /* Dice Display Style */
+        /* Dice Display */
         .dice {
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             background: white;
             border-radius: 8px;
             display: flex;
@@ -100,7 +100,7 @@
             border: 1px solid #cbd5e1;
         }
 
-        /* Custom Compact Scrollbars */
+        /* Scrollbars */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #1e293b; }
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
@@ -108,7 +108,7 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between p-2 sm:p-4 bg-slate-900 text-slate-100">
 
-    <!-- Top Navigation & Action Header -->
+    <!-- Header Navigation -->
     <header class="max-w-7xl w-full mx-auto flex justify-between items-center mb-3 bg-slate-800/90 backdrop-blur border border-slate-700 p-3 rounded-xl shadow-md">
         <div class="flex items-center gap-2.5">
             <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-extrabold text-lg shadow-md">
@@ -116,7 +116,7 @@
             </div>
             <div>
                 <h1 class="text-base font-bold text-white tracking-wide leading-tight">Monopoly Mini</h1>
-                <p class="text-[10px] text-slate-400">Web Edition • Ready for GitHub Pages</p>
+                <p class="text-[10px] text-slate-400">Sheet Sync Active • GitHub Pages Ready</p>
             </div>
         </div>
 
@@ -137,10 +137,10 @@
         </div>
     </header>
 
-    <!-- Main Content Area -->
+    <!-- Main Content Grid -->
     <main class="max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         
-        <!-- Left Side: Monopoly Board (11x11 Grid) -->
+        <!-- Left Side: Monopoly Board -->
         <section class="lg:col-span-7 xl:col-span-8 flex justify-center">
             <div id="board" class="board-grid">
                 <!-- Inner Board Center Area -->
@@ -149,13 +149,13 @@
                         <i class="fa-solid fa-house-chimney text-[200px] text-slate-900"></i>
                     </div>
 
-                    <!-- Center Monopoly Title -->
+                    <!-- Center Title -->
                     <div class="text-center mt-2">
                         <h2 class="text-xl sm:text-3xl font-extrabold tracking-widest text-slate-800 uppercase">MONOPOLY</h2>
                         <p class="text-[10px] text-slate-500 font-bold tracking-wider">LITE EDITION</p>
                     </div>
 
-                    <!-- Current Turn Status & Action Controls -->
+                    <!-- Turn Controls -->
                     <div class="bg-white/95 backdrop-blur p-3 rounded-xl shadow-md border border-slate-200 text-slate-800 max-w-xs mx-auto w-full text-center">
                         <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Giliran Saat Ini</div>
                         <div id="current-player-display" class="text-base font-extrabold text-indigo-600 flex items-center justify-center gap-1.5">
@@ -163,7 +163,7 @@
                             <span id="current-player-name">Pemain 1</span>
                         </div>
 
-                        <!-- Dice Output -->
+                        <!-- Dice -->
                         <div class="flex items-center justify-center gap-2 my-2">
                             <div id="dice-1" class="dice">1</div>
                             <div id="dice-2" class="dice">1</div>
@@ -179,28 +179,26 @@
                         </div>
                     </div>
 
-                    <!-- Database Sync Status Indicator -->
-                    <div class="flex justify-between items-center text-[9px] text-slate-400 px-1">
-                        <span><i class="fa-solid fa-circle text-emerald-500 text-[7px] mr-1"></i> Classic Mode</span>
-                        <span id="sync-status"><i class="fa-solid fa-database mr-1"></i> Code.gs: Ready</span>
+                    <!-- Status Bar -->
+                    <div class="flex justify-between items-center text-[9px] text-slate-500 px-1 font-mono">
+                        <span><i class="fa-solid fa-circle text-emerald-500 text-[7px] mr-1"></i> ID: 1XKAcb...AwJc4</span>
+                        <span id="sync-status"><i class="fa-solid fa-database mr-1"></i> AppsScript: Ready</span>
                     </div>
                 </div>
-
-                <!-- 40 Tiles generated dynamically by JavaScript -->
             </div>
         </section>
 
-        <!-- Right Side: Compact Player Status & Logs Frame -->
+        <!-- Right Side: Compact Player Status & Logs -->
         <section class="lg:col-span-5 xl:col-span-4 flex flex-col gap-3">
             
-            <!-- Compact Player Status Frame -->
+            <!-- Compact Status Player Panel -->
             <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 shadow-md">
                 <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center justify-between">
                     <span class="flex items-center gap-1.5"><i class="fa-solid fa-users text-indigo-400"></i> Status Pemain</span>
-                    <span class="text-[10px] text-slate-500 font-normal">Modal Awal: $1500</span>
+                    <span class="text-[10px] text-slate-500 font-normal">Modal: $1500</span>
                 </h3>
                 <div id="players-list" class="grid grid-cols-2 gap-2">
-                    <!-- Compact cards generated dynamically -->
+                    <!-- Cards via JS -->
                 </div>
             </div>
 
@@ -211,7 +209,7 @@
                     <button onclick="clearLogs()" class="text-[10px] text-slate-400 hover:text-slate-200">Bersihkan</button>
                 </h3>
                 <div id="game-logs" class="flex-1 overflow-y-auto space-y-1.5 text-[11px] pr-1 font-mono">
-                    <!-- Logs generated dynamically -->
+                    <!-- Logs via JS -->
                 </div>
             </div>
 
@@ -240,25 +238,18 @@
         </div>
     </div>
 
-    <!-- Modal Settings & Spreadsheet Info -->
+    <!-- Modal Settings & Code.gs Preview -->
     <div id="modal-setup" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-5 max-w-md w-full shadow-2xl text-slate-200 max-h-[90vh] overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-5 max-w-lg w-full shadow-2xl text-slate-200 max-h-[90vh] overflow-y-auto">
             <h3 class="text-base font-bold text-white mb-3 flex items-center gap-2">
-                <i class="fa-solid fa-sliders text-indigo-400"></i> Pengaturan Game & Database
+                <i class="fa-solid fa-sliders text-indigo-400"></i> Pengaturan Game & Code.gs
             </h3>
             
             <div class="space-y-3 text-xs">
-                <!-- Info Spreadsheet & Code.gs -->
-                <div class="bg-slate-800/80 border border-slate-700 p-3 rounded-lg text-slate-300 space-y-1.5">
-                    <p class="font-bold text-indigo-300 flex items-center gap-1">
-                        <i class="fa-solid fa-circle-info"></i> Kenapa Tidak Perlu Spreadsheet ID?
-                    </p>
-                    <p class="text-[11px] leading-relaxed text-slate-400">
-                        Di Apps Script (`Code.gs`), perintah <code class="text-amber-300 bg-slate-900 px-1 py-0.5 rounded">SpreadsheetApp.getActiveSpreadsheet()</code> otomatis terhubung ke Spreadsheet tempat script dibuat. Jadi **ID tidak diperlukan di JavaScript frontend**.
-                    </p>
-                    <p class="text-[11px] leading-relaxed text-slate-400">
-                        *(Opsional)* Jika kamu menggunakan Spreadsheet lain secara terpisah, gunakan <code class="text-amber-300 bg-slate-900 px-1 py-0.5 rounded">SpreadsheetApp.openById('ID_SPREADSHEET')</code> di Code.gs kamu.
-                    </p>
+                <!-- Spreadsheet ID display -->
+                <div class="bg-slate-800 border border-slate-700 p-3 rounded-lg space-y-1">
+                    <label class="block font-semibold text-slate-300">Target Spreadsheet ID (Hardcoded):</label>
+                    <input type="text" id="setup-sheet-id" readonly class="w-full bg-slate-950 border border-slate-800 rounded p-2 text-indigo-400 font-mono text-[11px]" value="1XKAcbRIgjeKUOyioq0TdtnAs8SJDAXgPKhuA58AwJc4">
                 </div>
 
                 <!-- Apps Script URL input -->
@@ -267,10 +258,27 @@
                     <input type="text" id="setup-script-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-indigo-500">
                 </div>
 
-                <!-- Optional Spreadsheet ID -->
+                <!-- Code.gs Example Snippet -->
                 <div>
-                    <label class="block font-semibold mb-1 text-slate-300">Spreadsheet ID Opsional (Opsional Payload):</label>
-                    <input type="text" id="setup-sheet-id" placeholder="Contoh: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-indigo-500">
+                    <label class="block font-semibold mb-1 text-slate-300">Kode Google Apps Script (<code class="text-amber-400">Code.gs</code>):</label>
+                    <pre class="bg-slate-950 border border-slate-800 p-2.5 rounded-lg text-[10px] text-emerald-400 font-mono overflow-x-auto leading-relaxed">
+function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    // Menggunakan Spreadsheet ID khusus
+    var ss = SpreadsheetApp.openById(data.spreadsheetId || "1XKAcbRIgjeKUOyioq0TdtnAs8SJDAXgPKhuA58AwJc4");
+    var sheet = ss.getActiveSheet();
+    sheet.appendRow([
+      data.timestamp,
+      data.player,
+      data.action,
+      data.details
+    ]);
+    return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);
+  } catch (err) {
+    return ContentService.createTextOutput("Error: " + err.message).setMimeType(ContentService.MimeType.TEXT);
+  }
+}</pre>
                 </div>
 
                 <!-- Player Setup -->
@@ -288,9 +296,12 @@
         </div>
     </div>
 
-    <!-- JavaScript Logic -->
+    <!-- Game Logic -->
     <script>
-        // --- 40 CLASSIC MONOPOLY TILES (11x11 PERIMETER) ---
+        // --- HARDCODED SPREADSHEET ID ---
+        const SPREADSHEET_ID = "1XKAcbRIgjeKUOyioq0TdtnAs8SJDAXgPKhuA58AwJc4";
+
+        // --- 40 CLASSIC MONOPOLY TILES (11x11 Grid Perimeter) ---
         const TILES_DATA = [
             { id: 0, name: "START", type: "start", price: 0, color: "bg-emerald-600" },
             { id: 1, name: "Monas", type: "property", price: 60, rent: 6, color: "bg-amber-800", side: "bottom" },
@@ -334,7 +345,7 @@
             { id: 39, name: "IKN Nusantara", type: "property", price: 400, rent: 40, color: "bg-blue-700", side: "right" }
         ];
 
-        // Grid Mapping for 40 Tiles on perimeter of 11x11 Grid
+        // Grid Mapping for 40 Tiles on 11x11 Grid
         const BOARD_POSITIONS = [
             { r: 11, c: 11 }, { r: 11, c: 10 }, { r: 11, c: 9 }, { r: 11, c: 8 }, { r: 11, c: 7 }, { r: 11, c: 6 }, { r: 11, c: 5 }, { r: 11, c: 4 }, { r: 11, c: 3 }, { r: 11, c: 2 },
             { r: 11, c: 1 },  { r: 10, c: 1 },  { r: 9, c: 1 },  { r: 8, c: 1 },  { r: 7, c: 1 },  { r: 6, c: 1 },  { r: 5, c: 1 },  { r: 4, c: 1 },  { r: 3, c: 1 },  { r: 2, c: 1 },
@@ -354,8 +365,7 @@
             currentTurnIndex: 0,
             isRolling: false,
             ownership: {},
-            appsScriptUrl: "",
-            spreadsheetId: ""
+            appsScriptUrl: ""
         };
 
         // --- FULLSCREEN / MAXIMIZE TOGGLE ---
@@ -378,17 +388,18 @@
             }
         }
 
-        // --- APPS SCRIPT / GOOGLE SHEETS SYNC ---
+        // --- APPS SCRIPT / SPREADSHEET LOGGING ---
         const GoogleSheetSync = {
             async logActivity(action, details) {
                 if (!state.appsScriptUrl) return;
                 
+                // Constructing JSON Payload with Hardcoded SPREADSHEET_ID
                 const payload = {
                     timestamp: new Date().toISOString(),
                     player: players[state.currentTurnIndex].name,
                     action: action,
                     details: details,
-                    spreadsheetId: state.spreadsheetId || "default"
+                    spreadsheetId: SPREADSHEET_ID
                 };
 
                 try {
@@ -398,10 +409,10 @@
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(payload)
                     });
-                    document.getElementById('sync-status').innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i> Terhubung Code.gs`;
+                    document.getElementById('sync-status').innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i> Code.gs Synced`;
                 } catch (err) {
                     console.warn("Apps Script Sync fail:", err);
-                    document.getElementById('sync-status').innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Error Sync`;
+                    document.getElementById('sync-status').innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Sync Fail`;
                 }
             }
         };
@@ -411,10 +422,10 @@
             renderBoard();
             renderPlayersDashboard();
             updateTurnDisplay();
-            addLog("Permainan dimulai! Selamat bermain.");
+            addLog("Game Siap! Selamat bermain Monopoli.");
         };
 
-        // Render Monopoly Tiles
+        // Render Board Tiles
         function renderBoard() {
             const boardEl = document.getElementById('board');
             
@@ -465,7 +476,7 @@
             updatePlayerTokens();
         }
 
-        // --- UPDATE TOKENS ON BOARD ---
+        // Update player tokens on board
         function updatePlayerTokens() {
             TILES_DATA.forEach((_, idx) => {
                 const container = document.getElementById(`tokens-${idx}`);
@@ -484,7 +495,7 @@
             });
         }
 
-        // --- DICE ROLLING LOGIC ---
+        // --- GAME ACTIONS & DICE ROLL ---
         function handleRollDice() {
             if (state.isRolling) return;
             state.isRolling = true;
@@ -509,8 +520,8 @@
                     const totalStep = dice1 + dice2;
                     const currentPlayer = players[state.currentTurnIndex];
 
-                    addLog(`${currentPlayer.name} melempar dadu: <b>${dice1} + ${dice2} = ${totalStep}</b>`);
-                    GoogleSheetSync.logActivity("Roll Dice", `Rolled ${totalStep}`);
+                    addLog(`${currentPlayer.name} lempar dadu: <b>${dice1} + ${dice2} = ${totalStep}</b>`);
+                    GoogleSheetSync.logActivity("Roll Dice", `Maju ${totalStep} langkah`);
 
                     movePlayer(currentPlayer, totalStep);
                 }
@@ -523,7 +534,7 @@
 
             if (currentPos + steps >= TILES_DATA.length) {
                 player.money += 200;
-                addLog(`🎉 ${player.name} lewat START, bonus <b>+$200</b>!`);
+                addLog(`🎉 ${player.name} lewati START, bonus <b>+$200</b>!`);
                 renderPlayersDashboard();
             }
 
@@ -535,7 +546,6 @@
             }, 350);
         }
 
-        // --- TILE ACTIONS ---
         function handleTileAction(player, tile) {
             addLog(`${player.name} mendarat di <b>${tile.name}</b>.`);
 
@@ -562,7 +572,7 @@
                     owner.money += rentAmount;
                     
                     addLog(`💸 ${player.name} bayar sewa <b>$${rentAmount}</b> ke ${owner.name}.`);
-                    GoogleSheetSync.logActivity("Pay Rent", `Paid $${rentAmount} to ${owner.name}`);
+                    GoogleSheetSync.logActivity("Pay Rent", `Bayar $${rentAmount} ke ${owner.name}`);
                     renderPlayersDashboard();
                 }
             } else if (tile.type === 'tax') {
@@ -576,7 +586,7 @@
             } else if (tile.type === 'chance' || tile.type === 'chest') {
                 const bonus = (Math.floor(Math.random() * 4) + 1) * 25;
                 player.money += bonus;
-                addLog(`🎁 ${player.name} dapat Kartu Khusus <b>+$${bonus}</b>!`);
+                addLog(`🎁 ${player.name} dapat Dana Umum/Kesempatan <b>+$${bonus}</b>!`);
                 renderPlayersDashboard();
             }
 
@@ -602,7 +612,7 @@
                     addLog(`❌ Uang ${player.name} tidak cukup.`);
                 }
             } else {
-                addLog(`${player.name} batal membeli ${tile.name}.`);
+                addLog(`${player.name} tidak membeli ${tile.name}.`);
             }
 
             finishAction();
@@ -619,7 +629,7 @@
             }
 
             addLog(`🏠 ${player.name} membeli <b>${tile.name}</b> ($${tile.price})`);
-            GoogleSheetSync.logActivity("Buy Property", `Bought ${tile.name}`);
+            GoogleSheetSync.logActivity("Buy Property", `Beli ${tile.name}`);
             renderPlayersDashboard();
         }
 
@@ -712,7 +722,6 @@
                 `).join('');
                 
                 document.getElementById('setup-script-url').value = state.appsScriptUrl;
-                document.getElementById('setup-sheet-id').value = state.spreadsheetId;
                 modal.classList.remove('hidden');
             } else {
                 modal.classList.add('hidden');
@@ -725,7 +734,6 @@
                 p.isAi = (val === 'bot');
             });
             state.appsScriptUrl = document.getElementById('setup-script-url').value.trim();
-            state.spreadsheetId = document.getElementById('setup-sheet-id').value.trim();
             
             document.getElementById('modal-setup').classList.add('hidden');
             addLog("Pengaturan disimpan.");
