@@ -151,7 +151,7 @@
 
                     <div class="w-full flex justify-between items-center text-[10px] text-slate-500 pt-2 border-t border-slate-800/80">
                         <span id="sheet-status-text"><i class="fa-solid fa-cloud-arrow-up text-indigo-400"></i> AppsScript: Ready</span>
-                        <span>Property Control Active</span>
+                        <span>Auto-Turn System Active</span>
                     </div>
                 </div>
             </div>
@@ -196,7 +196,7 @@
                 </div>
             </div>
 
-            <!-- FRAME BARU: DATA & KONTROL PROPERTI -->
+            <!-- FRAME DATA & KONTROL PROPERTI -->
             <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 shadow-xl flex flex-col gap-2.5 backdrop-blur-md">
                 <div class="flex justify-between items-center pb-2 border-b border-slate-800">
                     <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
@@ -312,7 +312,6 @@
             { id: 3, name: "Bot Gamma", color: "#f59e0b", bgClass: "bg-amber-500", isBot: true, money: 1500, pos: 0, properties: [] }
         ];
 
-        // Property Upgrade levels tracking (tileId -> level)
         const propertyLevels = {};
 
         const CHANCE_CARDS = [
@@ -453,7 +452,6 @@
             });
         }
 
-        // Render House Markers on Board
         function updateHouseMarkers() {
             TILES.forEach(tile => {
                 const markerBox = document.getElementById(`house-marker-${tile.id}`);
@@ -472,14 +470,12 @@
             });
         }
 
-        // Calculate dynamic rent based on upgrade level
         function getPropertyRent(tile) {
             const baseRent = tile.rent || 20;
             const lvl = propertyLevels[tile.id] || 1;
             return Math.round(baseRent * (1 + (lvl - 1) * 0.5));
         }
 
-        // UPDATE PROPERTY FRAME LIST & BUTTONS
         function updatePropertyListUI() {
             const listEl = document.getElementById('property-list');
             listEl.innerHTML = '';
@@ -522,7 +518,6 @@
             document.getElementById('prop-available-count').innerText = purchasableTiles.length - ownedCount;
             document.getElementById('prop-owned-count').innerText = ownedCount;
 
-            // Enable / Disable Control Buttons
             const curPlayer = PLAYERS[currentPlayerIndex];
             const selectedTile = TILES.find(t => t.id === selectedPropertyTileId);
             const selectedOwner = selectedTile ? PLAYERS.find(p => p.properties.includes(selectedTile.id)) : null;
@@ -534,7 +529,6 @@
             document.getElementById('btn-acquire-prop').disabled = !(isHumanTurn && selectedOwner && selectedOwner.id !== 0);
         }
 
-        // ACTION: UPGRADE PROPERTY
         function actionUpgradeProperty() {
             if (selectedPropertyTileId === null) return;
             const tile = TILES.find(t => t.id === selectedPropertyTileId);
@@ -553,20 +547,17 @@
             }
         }
 
-        // ACTION: AUCTION PROPERTY (Jual ke Bot)
         function actionAuctionProperty() {
             if (selectedPropertyTileId === null) return;
             const tile = TILES.find(t => t.id === selectedPropertyTileId);
             const player = PLAYERS[0];
             const auctionPrice = Math.round(tile.price * 1.2);
 
-            // Find interested bot
             const bot = PLAYERS.find(p => p.isBot && p.money >= auctionPrice);
             if (bot) {
                 player.money += auctionPrice;
                 bot.money -= auctionPrice;
                 
-                // Transfer property
                 player.properties = player.properties.filter(id => id !== tile.id);
                 bot.properties.push(tile.id);
 
@@ -579,7 +570,6 @@
             }
         }
 
-        // ACTION: ACQUIRE PROPERTY (Beli dari Bot)
         function actionAcquireProperty() {
             if (selectedPropertyTileId === null) return;
             const tile = TILES.find(t => t.id === selectedPropertyTileId);
@@ -594,7 +584,6 @@
                 player.money -= offerPrice;
                 owner.money += offerPrice;
 
-                // Transfer property
                 owner.properties = owner.properties.filter(id => id !== tile.id);
                 player.properties.push(tile.id);
 
@@ -639,9 +628,9 @@
             const bar = document.getElementById('timer-bar');
             const badge = document.getElementById('timer-badge');
             
-            const pct = (timeLeft / 10) * 100;
+            const pct = Math.max(0, (timeLeft / 10) * 100);
             bar.style.width = `${pct}%`;
-            badge.innerText = `${timeLeft}s`;
+            badge.innerText = `${Math.max(0, timeLeft)}s`;
 
             if (timeLeft > 5) {
                 bar.className = "timer-progress bg-emerald-500 h-full";
@@ -655,13 +644,19 @@
             }
         }
 
+        // PERBAIKAN TIMEOUT: Otomatis Lempar ATAU Otomatis Tekan Selesai
         function handleTimeoutAction() {
             const curPlayer = PLAYERS[currentPlayerIndex];
+            
+            // Tutup seandainya ada dialog modal yang menggantung saat waktu habis
+            document.getElementById('modal-buy').classList.add('hidden');
+            document.getElementById('modal-card').classList.add('hidden');
+
             if (!hasRolled) {
                 addLog(curPlayer.name, `⏱️ Waktu habis! Otomatis lempar dadu.`);
                 handleRollDice();
             } else {
-                addLog(curPlayer.name, `⏱️ Waktu habis! Otomatis ganti giliran.`);
+                addLog(curPlayer.name, `⏱️ Waktu habis! Otomatis menyelesaikan giliran.`);
                 endTurn();
             }
         }
@@ -723,6 +718,9 @@
                         document.getElementById('buy-title').innerText = `Beli ${tile.name}?`;
                         document.getElementById('buy-desc').innerText = `Harga: $${tile.price} | Sewa: $${getPropertyRent(tile)}`;
                         document.getElementById('modal-buy').classList.remove('hidden');
+                        
+                        // Restart timer 10s khusus untuk mengambil keputusan beli/lewati
+                        startTurnTimer();
                     }
                     return;
                 } else if (owner && owner.id !== player.id) {
@@ -765,6 +763,9 @@
                 document.getElementById('card-icon').className = `fa-solid ${iconClass}`;
                 
                 document.getElementById('modal-card').classList.remove('hidden');
+                
+                // Reset timer hitung mundur untuk popup kartu
+                startTurnTimer();
             } else {
                 addLog(player.name, `📜 Kartu ${category}: ${card.title}`);
                 renderPlayerCards();
@@ -801,12 +802,16 @@
             updatePropertyListUI();
         }
 
+        // PERBAIKAN UTAMA: Dihitung ulang timer 10 detik saat aksi selesai
         function finishStep() {
             isProcessingTurn = false;
             document.getElementById('btn-end').disabled = false;
 
             if (PLAYERS[currentPlayerIndex].isBot) {
-                setTimeout(() => { endTurn(); }, 800);
+                setTimeout(() => { endTurn(); }, 600);
+            } else {
+                // Untuk Pemain Manusia: Jalankan timer 10s baru untuk menekan tombol "Selesai"
+                startTurnTimer();
             }
         }
 
