@@ -21,7 +21,7 @@
             <div class="monopoly-board relative" id="board">
                 
                 <!-- Panel Interaktif Tengah -->
-                <div class="col-start-2 col-span-9 row-start-2 row-span-9 bg-slate-900/95 rounded-xl p-4 flex flex-col justify-between items-center text-center relative overflow-hidden border border-slate-800 backdrop-blur-md m-1">
+                <div class="col-start-2 col-span-9 row-start-2 row-span-9 bg-slate-900/95 rounded-xl p-4 flex flex-col justify-between items-center text-center relative overflow-hidden border border-slate-800 backdrop-blur-md m-1 z-30">
                     <div class="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
                         <span class="text-8xl font-black tracking-widest">MONOPOLY</span>
                     </div>
@@ -38,7 +38,7 @@
                             <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span> Pemain 1
                         </h2>
 
-                        <!-- Progress Bar Batas Waktu 10s -->
+                        <!-- Progress Bar Batas Waktu -->
                         <div class="mt-2.5 bg-slate-900 p-2 rounded-xl border border-slate-700/60">
                             <div class="flex justify-between items-center text-xs font-bold mb-1">
                                 <span class="text-slate-400 text-[11px]"><i class="fa-solid fa-clock text-amber-400 mr-1"></i> Batas Waktu</span>
@@ -74,10 +74,10 @@
             </div>
         </div>
 
-        <!-- Sisi Kanan: Status, Properti, & Log -->
+        <!-- Sisi Kanan: Status Pemain, Data Properti & Log -->
         <div class="lg:col-span-5 flex flex-col gap-3">
             
-            <!-- Header & Status Pemain -->
+            <!-- Frame Header & Status Pemain -->
             <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 shadow-xl flex flex-col gap-3 backdrop-blur-md">
                 <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
                     <div class="flex items-center gap-2.5">
@@ -112,7 +112,7 @@
                 </div>
             </div>
 
-            <!-- Data & Kontrol Properti -->
+            <!-- FRAME DATA & KONTROL PROPERTI -->
             <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 shadow-xl flex flex-col gap-2.5 backdrop-blur-md">
                 <div class="flex justify-between items-center pb-2 border-b border-slate-800">
                     <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
@@ -139,7 +139,7 @@
                 </div>
             </div>
 
-            <!-- Riwayat Permainan -->
+            <!-- Frame Riwayat Permainan -->
             <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 shadow-xl flex flex-col">
                 <div class="flex justify-between items-center mb-2 pb-2 border-b border-slate-800">
                     <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
@@ -153,34 +153,6 @@
         </div>
     </main>
 
-    <!-- Modal Event / Kartu -->
-    <div id="modal-card" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl relative">
-            <div id="card-icon-bg" class="w-14 h-14 bg-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 shadow-lg">
-                <i id="card-icon" class="fa-solid fa-question"></i>
-            </div>
-            <h3 class="text-xs uppercase font-extrabold tracking-widest text-slate-400 mb-1" id="card-category">KESEMPATAN</h3>
-            <h4 class="text-base font-bold text-white mb-2" id="card-title">Judul Kartu</h4>
-            <p class="text-xs text-slate-300 mb-5 leading-relaxed bg-slate-950/60 p-3 rounded-xl border border-slate-800" id="card-desc">Deskripsi kartu aksi...</p>
-            <button id="btn-close-card" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-lg shadow-indigo-600/30">Lanjutkan</button>
-        </div>
-    </div>
-
-    <!-- Modal Buy Property -->
-    <div id="modal-buy" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl relative">
-            <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center text-xl mx-auto mb-3">
-                <i class="fa-solid fa-building"></i>
-            </div>
-            <h3 class="text-lg font-bold text-white mb-1" id="buy-title">Beli Properti?</h3>
-            <p class="text-xs text-slate-400 mb-4" id="buy-desc">Apakah kamu ingin membeli tanah ini?</p>
-            <div class="flex gap-2">
-                <button id="btn-buy-yes" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs transition">Beli</button>
-                <button id="btn-buy-no" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 rounded-xl text-xs transition">Lewati</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Modal Settings -->
     <div id="modal-settings" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-md w-full shadow-2xl">
@@ -192,10 +164,6 @@
                     <label class="block text-slate-400 mb-1 font-semibold">Web App URL (Google Apps Script):</label>
                     <input type="text" id="setting-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 font-mono text-[11px]">
                 </div>
-                <div>
-                    <label class="block text-slate-400 mb-1 font-semibold">Spreadsheet ID (Hardcoded):</label>
-                    <input type="text" value="1XKAcbRIgjeKUOyioq0TdtnAs8SJDAXgPKhuA58AwJc4" readonly class="w-full bg-slate-950/50 border border-slate-800/80 rounded-xl p-2.5 text-slate-500 font-mono text-[11px] cursor-not-allowed">
-                </div>
             </div>
             <div class="flex gap-2 mt-6">
                 <button id="btn-save-settings" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition">Simpan</button>
@@ -204,7 +172,7 @@
         </div>
     </div>
 
-    <!-- Panggil file JavaScript Utama sebagai Module -->
+    <!-- Panggil Main JS sebagai Module -->
     <script type="module" src="js/main.js"></script>
 </body>
 </html>
