@@ -1,14 +1,17 @@
 const totalCells = 16;
 
 const players = [
-    { id: 1, name: "Pemain 1", money: 1500, position: 0, element: document.getElementById('player1-token'), moneyEl: document.getElementById('p1-money'), cardEl: document.getElementById('player1-info') },
-    { id: 2, name: "Pemain 2", money: 1500, position: 0, element: document.getElementById('player2-token'), moneyEl: document.getElementById('p2-money'), cardEl: document.getElementById('player2-info') }
+    { id: 0, name: "Pemain", isBot: false, money: 1500, position: 0, element: document.getElementById('player0-token'), moneyEl: document.getElementById('p0-money'), cardEl: document.getElementById('player0-info') },
+    { id: 1, name: "Bot 1", isBot: true, money: 1500, position: 0, element: document.getElementById('player1-token'), moneyEl: document.getElementById('p1-money'), cardEl: document.getElementById('player1-info') },
+    { id: 2, name: "Bot 2", isBot: true, money: 1500, position: 0, element: document.getElementById('player2-token'), moneyEl: document.getElementById('p2-money'), cardEl: document.getElementById('player2-info') },
+    { id: 3, name: "Bot 3", isBot: true, money: 1500, position: 0, element: document.getElementById('player3-token'), moneyEl: document.getElementById('p3-money'), cardEl: document.getElementById('player3-info') }
 ];
 
-let currentTurn = 0; // 0 untuk Pemain 1, 1 untuk Pemain 2
+let currentTurn = 0;
 let rolledThisTurn = false;
+let countdownTimer = null;
+let timeLeft = 10;
 
-// Data Properti (harga dan pemilik)
 const properties = {
     1: { name: "Jl. Mawar", price: 60, rent: 20, owner: null },
     3: { name: "Jl. Melati", price: 80, rent: 25, owner: null },
@@ -26,16 +29,29 @@ const buyBtn = document.getElementById('buy-btn');
 const endTurnBtn = document.getElementById('end-turn-btn');
 const diceResult = document.getElementById('dice-result');
 const turnInfo = document.getElementById('turn-info');
-const logBox = document.getElementById('log-box');
+const countdownEl = document.getElementById('countdown');
 
-function log(message) {
-    logBox.innerHTML = `<p>${message}</p>` + logBox.innerHTML;
+const modalOverlay = document.getElementById('modal-overlay');
+const modalTitle = document.getElementById('modal-title');
+const modalMessage = document.getElementById('modal-message');
+const modalCloseBtn = document.getElementById('modal-close-btn');
+
+function showModal(title, message, callback = null) {
+    modalTitle.textContent = title;
+    modalMessage.textContent = message;
+    modalOverlay.classList.add('show');
+
+    modalCloseBtn.onclick = () => {
+        modalOverlay.classList.remove('show');
+        if (callback) callback();
+    };
 }
 
 function updateUI() {
     players.forEach(p => {
         p.moneyEl.textContent = p.money;
-        moveToken(p);
+        const cellEl = document.getElementById(`cell-${p.position}`);
+        cellEl.appendChild(p.element);
     });
 
     players.forEach((p, idx) => {
@@ -49,76 +65,151 @@ function updateUI() {
     turnInfo.textContent = `Giliran: ${players[currentTurn].name}`;
 }
 
-// Koordinat / pemetaan posisi sel sederhana untuk visual token
-function moveToken(player) {
-    const cellEl = document.getElementById(`cell-${player.position}`);
-    const rect = cellEl.getBoundingClientRect();
-    const boardRect = document.querySelector('.board').getBoundingClientRect();
-    
-    // Penyesuaian posisi relatif dalam grid CSS
-    // Menggunakan kelas posisi grid CSS langsung agar lebih stabil
-    cellEl.appendChild(player.element);
+function startTurn() {
+    rolledThisTurn = false;
+    updateUI();
+
+    let player = players[currentTurn];
+
+    if (player.isBot) {
+        rollBtn.disabled = true;
+        buyBtn.disabled = true;
+        endTurnBtn.disabled = true;
+        clearInterval(countdownTimer);
+        countdownEl.textContent = "-";
+
+        setTimeout(() => {
+            executeRoll();
+            setTimeout(botDecision, 1500);
+        }, 1000);
+    } else {
+        rollBtn.disabled = false;
+        startCountdown();
+    }
 }
 
-rollBtn.addEventListener('click', () => {
+function startCountdown() {
+    timeLeft = 10;
+    countdownEl.textContent = timeLeft;
+    clearInterval(countdownTimer);
+
+    countdownTimer = setInterval(() => {
+        timeLeft--;
+        countdownEl.textContent = timeLeft;
+        if (timeLeft <= 0) {
+            clearInterval(countdownTimer);
+            if (!rolledThisTurn) {
+                showModal("Waktu Habis", "Waktu Anda habis, sistem otomatis melempar dadu!");
+                executeRoll();
+                // Otomatis akhiri giliran jika human diam
+                setTimeout(endTurn, 2000);
+            }
+        }
+    }, 1000);
+}
+
+function executeRoll() {
     if (rolledThisTurn) return;
+    clearInterval(countdownTimer);
+    rolledThisTurn = true;
 
     const dice = Math.floor(Math.random() * 6) + 1;
     diceResult.textContent = `🎲 ${dice}`;
-    rolledThisTurn = true;
 
     let player = players[currentTurn];
     let oldPos = player.position;
-    player.position = (player.position + dice) % totalCells;
+    player.position = (player.position + totalCells) % totalCells; // perbaikan posisi
+    player.position = (oldPos + dice) % totalCells;
 
-    // Jika melewati START
     if (player.position < oldPos) {
         player.money += 200;
-        log(`${player.name} melewati START dan mendapat $200!`);
+        showModal("Bonus START", `${player.name} melewati START dan mendapat $200!`);
     }
 
-    log(`${player.name} melempar angka ${dice} dan mendarat di ${player.position}`);
     updateUI();
     handleCellAction(player);
-});
+}
 
 function handleCellAction(player) {
-    buyBtn.disabled = true;
-    endTurnBtn.disabled = false;
-
-    // Cek apakah petak adalah properti
     if (properties[player.position]) {
         let prop = properties[player.position];
         if (prop.owner === null) {
-            if (player.money >= prop.price) {
-                buyBtn.disabled = false;
-                log(`${prop.name} belum ada yang punya seharga $${prop.price}. Anda bisa membelinya.`);
-            } else {
-                log(`Uang ${player.name} tidak cukup untuk membeli ${prop.name}.`);
+            if (!player.isBot) {
+                if (player.money >= prop.price) {
+                    buyBtn.disabled = false;
+                    endTurnBtn.disabled = false;
+                    showModal("Beli Properti", `${prop.name} seharga $${prop.price} kosong. Anda bisa membelinya.`);
+                } else {
+                    endTurnBtn.disabled = false;
+                    showModal("Info", `Uang tidak cukup untuk membeli ${prop.name}.`);
+                }
             }
         } else if (prop.owner === player.id) {
-            log(`Ini adalah properti milik Anda sendiri.`);
+            if (!player.isBot) {
+                endTurnBtn.disabled = false;
+                showModal("Info", `Ini properti milik Anda sendiri.`);
+            }
         } else {
             let ownerPlayer = players.find(p => p.id === prop.owner);
             player.money -= prop.rent;
             ownerPlayer.money += prop.rent;
-            log(`${player.name} mendarat di properti ${ownerPlayer.name} dan membayar sewa $${prop.rent}.`);
             updateUI();
+            if (!player.isBot) {
+                endTurnBtn.disabled = false;
+                showModal("Bayar Sewa", `${player.name} mendarat di ${prop.name} milik ${ownerPlayer.name}, bayar sewa $${prop.rent}.`);
+            }
         }
-    } 
-    // Petak Pajak
-    else if (player.position === 6) {
+    } else if (player.position === 6) {
         player.money -= 100;
-        log(`${player.name} terkena Pajak dan membayar $100!`);
         updateUI();
+        if (!player.isBot) {
+            endTurnBtn.disabled = false;
+            showModal("Pajak", `${player.name} terkena Pajak dan membayar $100!`);
+        }
+    } else if (player.position === 12) {
+        player.position = 4;
+        updateUI();
+        if (!player.isBot) {
+            endTurnBtn.disabled = false;
+            showModal("Masuk Penjara", `${player.name} dijebloskan ke Penjara!`);
+        }
+    } else {
+        if (!player.isBot) {
+            endTurnBtn.disabled = false;
+        }
     }
-    // Petak Masuk Penjara
-    else if (player.position === 12) {
-        player.position = 4; // Pindah ke petak Penjara (index 4)
-        log(`${player.name} melanggar hukum dan dijebloskan ke Penjara!`);
-        updateUI();
+
+    if (player.isBot) {
+        // Bot handling akan diproses di botDecision
     }
 }
+
+function botDecision() {
+    let player = players[currentTurn];
+    if (properties[player.position]) {
+        let prop = properties[player.position];
+        if (prop.owner === null && player.money >= prop.price + 100) {
+            player.money -= prop.price;
+            prop.owner = player.id;
+            const cellEl = document.getElementById(`cell-${player.position}`);
+            cellEl.style.backgroundColor = getBotColorBg(player.id);
+            showModal("Aksi Bot", `${player.name} membeli ${prop.name} seharga $${prop.price}.`, endTurn);
+            return;
+        }
+    }
+    setTimeout(endTurn, 1000);
+}
+
+function getBotColorBg(id) {
+    if (id === 1) return '#e7f1ff';
+    if (id === 2) return '#e8f5e9';
+    if (id === 3) return '#fffde7';
+    return '#fff';
+}
+
+rollBtn.addEventListener('click', () => {
+    executeRoll();
+});
 
 buyBtn.addEventListener('click', () => {
     let player = players[currentTurn];
@@ -128,25 +219,27 @@ buyBtn.addEventListener('click', () => {
         player.money -= prop.price;
         prop.owner = player.id;
         buyBtn.disabled = true;
-        
-        // Tandai visual pada sel bahwa sudah dibeli
+
         const cellEl = document.getElementById(`cell-${player.position}`);
-        cellEl.style.backgroundColor = player.id === 1 ? '#ffdddd' : '#ddf0ff';
-        
-        log(`${player.name} berhasil membeli ${prop.name} seharga $${prop.price}!`);
+        cellEl.style.backgroundColor = '#ffdddd';
+
         updateUI();
+        showModal("Sukses", `Anda berhasil membeli ${prop.name} seharga $${prop.price}!`);
     }
 });
 
 endTurnBtn.addEventListener('click', () => {
-    currentTurn = 1 - currentTurn; // Ganti giliran (0 jadi 1, 1 jadi 0)
-    rolledThisTurn = false;
-    diceResult.textContent = `🎲 -`;
-    buyBtn.disabled = true;
-    endTurnBtn.disabled = true;
-    rollBtn.disabled = false;
-    updateUI();
+    endTurn();
 });
 
-// Inisialisasi awal
-updateUI();
+function endTurn() {
+    modalOverlay.classList.remove('show');
+    currentTurn = (currentTurn + 1) % players.length;
+    buyBtn.disabled = true;
+    endTurnBtn.disabled = true;
+    diceResult.textContent = `🎲 -`;
+    startTurn();
+}
+
+// Mulai game
+startTurn();
