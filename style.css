@@ -11,60 +11,75 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    width: 100vw;
+    padding: 10px;
 }
 
 .game-container {
     background: white;
-    padding: 20px;
+    padding: 15px;
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    width: 650px;
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 h1 {
     text-align: center;
-    margin-bottom: 15px;
+    font-size: 1.3rem;
     color: #333;
 }
 
 .status-panel {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    background: #fafafa;
-    padding: 10px;
-    border-radius: 8px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
 }
 
 .player-card {
-    padding: 10px 15px;
+    padding: 6px 4px;
     border-radius: 6px;
     border: 2px solid transparent;
-    width: 30%;
     text-align: center;
+    background: #fafafa;
+    font-size: 0.8rem;
 }
 
 .player-card.active {
     border-color: #007bff;
     background: #e7f1ff;
+    font-weight: bold;
 }
 
-.controls {
-    text-align: center;
+.controls-bar {
+    background: #fafafa;
+    padding: 8px;
+    border-radius: 8px;
     display: flex;
     flex-direction: column;
+    gap: 6px;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.btn-group {
+    display: flex;
     gap: 5px;
+    justify-content: center;
 }
 
 button {
-    padding: 6px 12px;
+    padding: 6px 10px;
     background-color: #28a745;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-weight: bold;
+    font-size: 0.85rem;
 }
 
 button:disabled {
@@ -76,39 +91,40 @@ button:hover:not(:disabled) {
     background-color: #218838;
 }
 
-/* Papan Monopoli Grid 4x4 */
+/* Papan Responsif */
 .board {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(5, 80px);
-    gap: 4px;
+    grid-template-rows: repeat(5, minmax(65px, 1fr));
+    gap: 3px;
     background: #ccc;
-    padding: 4px;
+    padding: 3px;
     border-radius: 8px;
     position: relative;
-    margin-bottom: 15px;
+    width: 100%;
+    aspect-ratio: 1 / 1;
 }
 
 .cell {
     background: white;
-    padding: 5px;
-    font-size: 11px;
+    padding: 3px;
+    font-size: 9px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
     text-align: center;
-    border-radius: 4px;
+    border-radius: 3px;
     font-weight: bold;
     position: relative;
 }
 
-.cell.property { border-top: 4px solid #ffc107; }
+.cell.property { border-top: 3px solid #ffc107; }
 .cell.chance { background-color: #e3f2fd; }
 .cell.tax { background-color: #ffebee; }
 .cell.corner { background-color: #e8f5e9; }
 
-/* Atur posisi grid agar membentuk kotak keliling */
+/* Posisi Grid Papan */
 #cell-0 { grid-column: 1; grid-row: 1; }
 #cell-1 { grid-column: 2; grid-row: 1; }
 #cell-2 { grid-column: 3; grid-row: 1; }
@@ -129,26 +145,64 @@ button:hover:not(:disabled) {
 #cell-14 { grid-column: 1; grid-row: 3; }
 #cell-15 { grid-column: 1; grid-row: 2; }
 
-/* Token Pemain */
+/* Token 4 Pemain */
 .token {
-    width: 16px;
-    height: 16px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
     position: absolute;
-    bottom: 5px;
+    bottom: 3px;
     z-index: 10;
-    transition: all 0.3s ease;
 }
 
-.token.p1 { background-color: #dc3545; left: 8px; }
-.token.p2 { background-color: #007bff; right: 8px; }
+.token.p0 { background-color: #dc3545; left: 2px; }
+.token.p1 { background-color: #007bff; left: 18px; }
+.token.p2 { background-color: #28a745; right: 18px; }
+.token.p3 { background-color: #ffc107; right: 2px; }
 
-#log-box {
-    background: #333;
-    color: #fff;
-    padding: 10px;
-    border-radius: 6px;
-    font-size: 13px;
-    height: 60px;
-    overflow-y: auto;
+/* Modal Pop-up Styling */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 999;
+}
+
+.modal-overlay.show {
+    visibility: visible;
+    opacity: 1;
+}
+
+.modal-box {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 320px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.modal-box h3 {
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.modal-box p {
+    font-size: 0.95rem;
+    color: #555;
+}
+
+.modal-box button {
+    align-self: center;
+    padding: 6px 20px;
 }
