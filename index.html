@@ -10,57 +10,73 @@
     <div class="game-container">
         <h1>Monopoli Sederhana</h1>
         
+        <!-- Panel Status 4 Pemain -->
         <div class="status-panel">
-            <div id="player1-info" class="player-card active">
-                <h3>Pemain 1 (Merah)</h3>
-                <p>Uang: $<span id="p1-money">1500</span></p>
+            <div id="player0-info" class="player-card active">
+                <h4>Pemain (Merah)</h4>
+                <p>$<span id="p0-money">1500</span></p>
             </div>
-            <div class="controls">
-                <div id="turn-info">Giliran: Pemain 1</div>
-                <div id="dice-result">🎲 -</div>
+            <div id="player1-info" class="player-card">
+                <h4>Bot 1 (Biru)</h4>
+                <p>$<span id="p1-money">1500</span></p>
+            </div>
+            <div id="player2-info" class="player-card">
+                <h4>Bot 2 (Hijau)</h4>
+                <p>$<span id="p2-money">1500</span></p>
+            </div>
+            <div id="player3-info" class="player-card">
+                <h4>Bot 3 (Kuning)</h4>
+                <p>$<span id="p3-money">1500</span></p>
+            </div>
+        </div>
+
+        <div class="controls-bar">
+            <div id="turn-info">Giliran: Pemain</div>
+            <div id="timer-info">Waktu: <span id="countdown">10</span>s</div>
+            <div id="dice-result">🎲 -</div>
+            <div class="btn-group">
                 <button id="roll-btn">Lempar Dadu</button>
                 <button id="buy-btn" disabled>Beli Tanah</button>
                 <button id="end-turn-btn" disabled>Akhiri Giliran</button>
-            </div>
-            <div id="player2-info" class="player-card">
-                <h3>Pemain 2 (Biru)</h3>
-                <p>Uang: $<span id="p2-money">1500</span></p>
             </div>
         </div>
 
         <!-- Papan Monopoli 4x4 (16 Kotak) -->
         <div class="board">
-            <!-- Baris Atas (0 - 4) -->
             <div class="cell" id="cell-0">START</div>
             <div class="cell property" id="cell-1">Jl. Mawar<br>$60</div>
             <div class="cell chance" id="cell-2">Dana Umum</div>
             <div class="cell property" id="cell-3">Jl. Melati<br>$80</div>
             <div class="cell corner" id="cell-4">Penjara</div>
 
-            <!-- Kolom Kanan (5 - 7) -->
             <div class="cell property" id="cell-5">Jl. Sudirman<br>$140</div>
-            <div class="cell tax" id="cell-6">Pajak<br>Bayar $100</div>
+            <div class="cell tax" id="cell-6">Pajak<br>$100</div>
             <div class="cell property" id="cell-7">Jl. Thamrin<br>$160</div>
 
-            <!-- Baris Bawah (8 - 11) - Urutan Terbalik -->
             <div class="cell corner" id="cell-8">Parkir Bebas</div>
             <div class="cell property" id="cell-9">Jl. Gatot Subroto<br>$220</div>
             <div class="cell chance" id="cell-10">Kesempatan</div>
             <div class="cell property" id="cell-11">Jl. HR Rasuna<br>$240</div>
 
-            <!-- Kolom Kiri (12 - 15) -->
             <div class="cell tax" id="cell-12">Masuk Penjara</div>
             <div class="cell property" id="cell-13">Jl. Asia Afrika<br>$300</div>
             <div class="cell property" id="cell-14">Jl. Sudirman<br>$320</div>
             <div class="cell property" id="cell-15">Jl. Diponegoro<br>$400</div>
 
-            <!-- Token Pemain di Tengah Papan -->
+            <!-- Token 4 Pemain -->
+            <div id="player0-token" class="token p0"></div>
             <div id="player1-token" class="token p1"></div>
             <div id="player2-token" class="token p2"></div>
+            <div id="player3-token" class="token p3"></div>
         </div>
+    </div>
 
-        <div id="log-box">
-            <p>Selamat datang di Monopoli! Lempar dadu untuk mulai.</p>
+    <!-- Modal Pop-up Notifikasi -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="modal-title">Informasi</h3>
+            <p id="modal-message">Pesan game di sini...</p>
+            <button id="modal-close-btn">OK</button>
         </div>
     </div>
 
