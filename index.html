@@ -2,103 +2,68 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Monopoly Mini - Web Edition</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Monopoli Sederhana</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="w-full max-w-lg mx-auto space-y-3 pb-8">
-
-    <div class="w-full bg-slate-900 border border-slate-800 rounded-2xl p-3.5 flex justify-between items-center shadow-lg">
-        <div class="flex items-center gap-2.5">
-            <div class="bg-indigo-600 w-8 h-8 rounded-xl flex items-center justify-center font-extrabold text-base text-white shadow-md">M</div>
-            <div>
-                <h1 class="font-bold text-sm leading-tight">Monopoly Mini</h1>
-                <p class="text-[10px] text-slate-400">Modular Edition</p>
+<body>
+    <div class="game-container">
+        <h1>Monopoli Sederhana</h1>
+        
+        <div class="status-panel">
+            <div id="player1-info" class="player-card active">
+                <h3>Pemain 1 (Merah)</h3>
+                <p>Uang: $<span id="p1-money">1500</span></p>
+            </div>
+            <div class="controls">
+                <div id="turn-info">Giliran: Pemain 1</div>
+                <div id="dice-result">🎲 -</div>
+                <button id="roll-btn">Lempar Dadu</button>
+                <button id="buy-btn" disabled>Beli Tanah</button>
+                <button id="end-turn-btn" disabled>Akhiri Giliran</button>
+            </div>
+            <div id="player2-info" class="player-card">
+                <h3>Pemain 2 (Biru)</h3>
+                <p>Uang: $<span id="p2-money">1500</span></p>
             </div>
         </div>
-        <div class="flex gap-1.5">
-            <button id="btn-settings" class="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs border border-slate-700"><i class="fa-solid fa-gear text-slate-300"></i></button>
-            <button id="btn-reset" class="p-2.5 bg-rose-600/20 text-rose-300 rounded-xl text-xs border border-rose-500/30"><i class="fa-solid fa-rotate-right"></i></button>
+
+        <!-- Papan Monopoli 4x4 (16 Kotak) -->
+        <div class="board">
+            <!-- Baris Atas (0 - 4) -->
+            <div class="cell" id="cell-0">START</div>
+            <div class="cell property" id="cell-1">Jl. Mawar<br>$60</div>
+            <div class="cell chance" id="cell-2">Dana Umum</div>
+            <div class="cell property" id="cell-3">Jl. Melati<br>$80</div>
+            <div class="cell corner" id="cell-4">Penjara</div>
+
+            <!-- Kolom Kanan (5 - 7) -->
+            <div class="cell property" id="cell-5">Jl. Sudirman<br>$140</div>
+            <div class="cell tax" id="cell-6">Pajak<br>Bayar $100</div>
+            <div class="cell property" id="cell-7">Jl. Thamrin<br>$160</div>
+
+            <!-- Baris Bawah (8 - 11) - Urutan Terbalik -->
+            <div class="cell corner" id="cell-8">Parkir Bebas</div>
+            <div class="cell property" id="cell-9">Jl. Gatot Subroto<br>$220</div>
+            <div class="cell chance" id="cell-10">Kesempatan</div>
+            <div class="cell property" id="cell-11">Jl. HR Rasuna<br>$240</div>
+
+            <!-- Kolom Kiri (12 - 15) -->
+            <div class="cell tax" id="cell-12">Masuk Penjara</div>
+            <div class="cell property" id="cell-13">Jl. Asia Afrika<br>$300</div>
+            <div class="cell property" id="cell-14">Jl. Sudirman<br>$320</div>
+            <div class="cell property" id="cell-15">Jl. Diponegoro<br>$400</div>
+
+            <!-- Token Pemain di Tengah Papan -->
+            <div id="player1-token" class="token p1"></div>
+            <div id="player2-token" class="token p2"></div>
         </div>
-    </div>
 
-    <div class="w-full flex justify-center items-center my-1">
-        <div class="monopoly-board" id="board">
-            <div class="board-center">
-                <div class="flex justify-between items-center text-xs text-slate-400 border-b border-slate-800 pb-1.5">
-                    <span><i class="fa-solid fa-flag-checkered text-indigo-400"></i> Putaran: <strong id="turn-count" class="text-white">1</strong></span>
-                    <span class="font-mono text-[10px]">Sheet: Aktif</span>
-                </div>
-
-                <div class="my-auto bg-slate-800/90 p-3 rounded-xl border border-slate-700 shadow-xl">
-                    <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Giliran Saat Ini</p>
-                    <h2 id="current-player-name" class="text-sm font-black text-indigo-400 flex items-center justify-center gap-2">
-                        <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span> Pemain 1
-                    </h2>
-
-                    <div class="mt-2 bg-slate-900 p-1.5 rounded-lg border border-slate-700/60">
-                        <div class="flex justify-between items-center text-[10px] font-bold mb-1">
-                            <span class="text-slate-400"><i class="fa-solid fa-clock text-amber-400 mr-1"></i> Waktu</span>
-                            <span id="timer-badge" class="text-emerald-400">10s</span>
-                        </div>
-                        <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                            <div id="timer-bar" class="timer-progress bg-emerald-500 h-full w-full"></div>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-center items-center gap-3 my-2.5">
-                        <div id="dice-1" class="w-9 h-9 bg-white text-slate-900 rounded-xl font-extrabold text-lg flex items-center justify-center shadow-lg border-2 border-slate-200">1</div>
-                        <div id="dice-2" class="w-9 h-9 bg-white text-slate-900 rounded-xl font-extrabold text-lg flex items-center justify-center shadow-lg border-2 border-slate-200">1</div>
-                    </div>
-
-                    <div class="flex gap-2">
-                        <button id="btn-roll" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-3 rounded-xl text-xs shadow-lg transition flex items-center justify-center gap-1.5 cursor-pointer">
-                            <i class="fa-solid fa-dice"></i> Lempar
-                        </button>
-                        <button id="btn-end" disabled class="bg-slate-700 text-slate-400 font-bold py-2 px-3 rounded-xl text-xs transition disabled:opacity-40 cursor-not-allowed">
-                            Selesai
-                        </button>
-                    </div>
-                </div>
-
-                <div class="text-[10px] text-slate-500 pt-1.5 border-t border-slate-800">
-                    <span>Auto-Turn System Active</span>
-                </div>
-            </div>
+        <div id="log-box">
+            <p>Selamat datang di Monopoli! Lempar dadu untuk mulai.</p>
         </div>
     </div>
 
-    <div class="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg space-y-2.5">
-        <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center gap-2 border-b border-slate-800 pb-2">
-            <i class="fa-solid fa-users text-indigo-400"></i> Status Pemain & Properti
-        </h3>
-        <div class="grid grid-cols-2 gap-2.5" id="players-container">
-            <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-xs">
-                <strong class="text-red-400">Pemain 1</strong><br><span class="text-slate-400 text-[10px]">Modal: $1500</span>
-            </div>
-            <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-xs">
-                <strong class="text-blue-400">Bot Alfa</strong><br><span class="text-slate-400 text-[10px]">Modal: $1500</span>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-settings" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-sm w-full shadow-2xl space-y-4 text-xs">
-            <h3 class="font-bold text-white text-sm flex items-center gap-2"><i class="fa-solid fa-sliders text-indigo-400"></i> Pengaturan Aplikasi</h3>
-            <div>
-                <label class="block text-slate-400 mb-1 font-semibold">Web App URL:</label>
-                <input type="text" id="setting-url" placeholder="https://script.google.com/..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 text-[11px] font-mono">
-            </div>
-            <div class="flex gap-2 pt-2">
-                <button id="btn-save-settings" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl cursor-pointer">Simpan</button>
-                <button id="btn-close-settings" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl cursor-pointer">Batal</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Panggil file JavaScript utama dengan type="module" -->
-    <script type="module" src="js/main.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
