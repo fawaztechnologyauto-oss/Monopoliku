@@ -1,7 +1,13 @@
 export function initBoard() {
-    const boardEl = document.getElementById('board');
-    if (!boardEl) return;
-    
-    // Logika pembuatan tile/papan monopoli Anda bisa ditaruh di sini
-    // Contoh placeholder grid setup atau render dinamis papan 11x11
+    const board = document.getElementById('board');
+    if (!board) return;
+
+    // Membuat 40 petak grid monopoli secara otomatis agar papan tidak kosong
+    for (let i = 0; i < 40; i++) {
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        tile.id = `tile-${i}`;
+        tile.innerHTML = `<span class="text-[9px] text-slate-500 font-bold">${i}</span>`;
+        board.appendChild(tile);
+    }
 }
