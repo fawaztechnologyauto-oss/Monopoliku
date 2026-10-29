@@ -1,0 +1,154 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f0f2f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.game-container {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    width: 650px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.status-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background: #fafafa;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.player-card {
+    padding: 10px 15px;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    width: 30%;
+    text-align: center;
+}
+
+.player-card.active {
+    border-color: #007bff;
+    background: #e7f1ff;
+}
+
+.controls {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+button {
+    padding: 6px 12px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+    background-color: #218838;
+}
+
+/* Papan Monopoli Grid 4x4 */
+.board {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 80px);
+    gap: 4px;
+    background: #ccc;
+    padding: 4px;
+    border-radius: 8px;
+    position: relative;
+    margin-bottom: 15px;
+}
+
+.cell {
+    background: white;
+    padding: 5px;
+    font-size: 11px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+    border-radius: 4px;
+    font-weight: bold;
+    position: relative;
+}
+
+.cell.property { border-top: 4px solid #ffc107; }
+.cell.chance { background-color: #e3f2fd; }
+.cell.tax { background-color: #ffebee; }
+.cell.corner { background-color: #e8f5e9; }
+
+/* Atur posisi grid agar membentuk kotak keliling */
+#cell-0 { grid-column: 1; grid-row: 1; }
+#cell-1 { grid-column: 2; grid-row: 1; }
+#cell-2 { grid-column: 3; grid-row: 1; }
+#cell-3 { grid-column: 4; grid-row: 1; }
+#cell-4 { grid-column: 5; grid-row: 1; }
+
+#cell-5 { grid-column: 5; grid-row: 2; }
+#cell-6 { grid-column: 5; grid-row: 3; }
+#cell-7 { grid-column: 5; grid-row: 4; }
+
+#cell-8 { grid-column: 5; grid-row: 5; }
+#cell-9 { grid-column: 4; grid-row: 5; }
+#cell-10 { grid-column: 3; grid-row: 5; }
+#cell-11 { grid-column: 2; grid-row: 5; }
+#cell-12 { grid-column: 1; grid-row: 5; }
+
+#cell-13 { grid-column: 1; grid-row: 4; }
+#cell-14 { grid-column: 1; grid-row: 3; }
+#cell-15 { grid-column: 1; grid-row: 2; }
+
+/* Token Pemain */
+.token {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 5px;
+    z-index: 10;
+    transition: all 0.3s ease;
+}
+
+.token.p1 { background-color: #dc3545; left: 8px; }
+.token.p2 { background-color: #007bff; right: 8px; }
+
+#log-box {
+    background: #333;
+    color: #fff;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    height: 60px;
+    overflow-y: auto;
+}
