@@ -13,19 +13,36 @@ function renderPlayerCards() {
         const isActive = idx === currentPlayerIndex;
         const card = document.createElement('div');
         card.className = `p-2.5 rounded-xl border transition ${isActive ? 'bg-indigo-950/70 border-indigo-500 shadow-lg' : 'bg-slate-950/40 border-slate-800'}`;
+        
+        // Tombol pilih peran (agar user bisa ganti jadi P1, P2, P3, atau P4)
         card.innerHTML = `
             <div class="flex justify-between items-center mb-1">
                 <div class="flex items-center gap-1.5">
                     <span class="w-2.5 h-2.5 rounded-full ${p.bgClass}"></span>
                     <span class="font-bold text-xs text-white">${p.name}</span>
                 </div>
-                <span class="text-[9px] px-1.5 py-0.2 rounded ${p.isBot ? 'bg-slate-800 text-slate-400' : 'bg-indigo-500/20 text-indigo-300 font-bold'}">${p.isBot ? 'BOT' : 'P1'}</span>
+                <button onclick="selectPlayerRole(${idx})" class="text-[9px] px-2 py-0.5 rounded cursor-pointer transition ${!p.isBot ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}">
+                    ${!p.isBot ? 'ANDA' : 'Pilih'}
+                </button>
             </div>
             <div class="text-sm font-black text-slate-100">$${p.money}</div>
             <div class="text-[10px] text-slate-400 mt-0.5">Aset: ${p.properties.length}</div>
         `;
         container.appendChild(card);
     });
+}
+
+// Fungsi untuk memilih slot pemain mana yang ingin dimainkan manusia
+function selectPlayerRole(selectedIdx) {
+    PLAYERS.forEach((p, idx) => {
+        p.isBot = (idx !== selectedIdx);
+    });
+    renderPlayerCards();
+    addLog("System", `Anda sekarang bermain sebagai ${PLAYERS[selectedIdx].name}.`);
+    
+    // Jika giliran langsung jatuh ke bot/pemain lain setelah dipilih, sesuaikan tombol
+    const currentPlayer = PLAYERS[currentPlayerIndex];
+    document.getElementById('btn-roll').disabled = currentPlayer.isBot || hasRolled;
 }
 
 function updateTokens() {
