@@ -48,7 +48,6 @@ function startTurnTimer() {
     document.getElementById('btn-roll').disabled = currentPlayer.isBot || hasRolled;
 
     turnTimerInterval = setInterval(async () => {
-        // Cek apakah ada modal pop-up yang sedang terbuka (jeda timer utama)
         const isModalOpen = !document.getElementById('modal-buy').classList.contains('hidden') ||
                             !document.getElementById('modal-card').classList.contains('hidden') ||
                             !document.getElementById('modal-alert').classList.contains('hidden');
@@ -203,7 +202,7 @@ function showBuyModal(tile) {
         modalTimeLeft--;
         if (modalTimeLeft <= 0) {
             clearInterval(modalTimerInterval);
-            confirmBuy(false); // Otomatis Lewati jika waktu habis
+            confirmBuy(false); // Otomatis Lewati jika waktu modal habis
         }
     }, 1000);
 }
@@ -230,8 +229,14 @@ function confirmBuy(willBuy) {
     }
     pendingBuyTile = null;
 
-    // PERBAIKAN UTAMA: Lanjutkan kembali timer utama setelah modal pembelian ditutup
-    startTurnTimer();
+    // PERBAIKAN: Jika sebelumnya waktu giliran utama sudah habis (atau dilempar otomatis karena waktu habis), 
+    // setelah modal ditutup langsung akhiri giliran secara otomatis.
+    if (timeLeft <= 0) {
+        addLog("System", "Waktu habis setelah aksi, mengakhiri giliran otomatis.");
+        endTurn();
+    } else {
+        startTurnTimer();
+    }
 }
 
 function showAlertModal(message) {
