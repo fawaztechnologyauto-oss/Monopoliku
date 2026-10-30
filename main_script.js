@@ -64,7 +64,6 @@ function updateTimerUI() {
     }
 }
 
-// Fungsi Animasi Pengacakan Dadu
 function animateDiceRoll() {
     return new Promise((resolve) => {
         let counter = 0;
@@ -89,12 +88,10 @@ function animateDiceRoll() {
     });
 }
 
-// Fungsi Lempar Dadu & Animasi Berjalan Petak demi Petak
 async function handleRollDice() {
     if (hasRolled) return;
     hasRolled = true;
     
-    // Jalankan animasi pengacakan dadu terlebih dahulu
     await animateDiceRoll();
 
     const d1 = Math.floor(Math.random() * 6) + 1;
@@ -108,7 +105,6 @@ async function handleRollDice() {
     
     addLog(player.name, `Melempar dadu ${d1} + ${d2} = ${total}. Berjalan...`);
 
-    // Animasi pergerakan pion satu per satu petak
     for (let step = 0; step < total; step++) {
         player.pos = (player.pos + 1) % TILES.length;
         
@@ -119,11 +115,9 @@ async function handleRollDice() {
         }
         
         updateTokens();
-        // Jeda waktu (200ms) untuk efek animasi melangkah
         await new Promise(resolve => setTimeout(resolve, 200)); 
     }
     
-    // Setelah selesai berjalan, cek aksi pada petak terakhir
     checkTileAction(player);
     
     document.getElementById('btn-roll').disabled = true;
@@ -216,7 +210,7 @@ function endTurn() {
     
     const currentPlayer = PLAYERS[currentPlayerIndex];
     document.getElementById('current-player-name').innerHTML = `
-        <span class="w-3 h-3 rounded-full ${currentPlayer.bgClass} inline-block"></span> ${currentPlayer.name}
+        <span class="w-2.5 h-2.5 rounded-full ${currentPlayer.bgClass} inline-block"></span> ${currentPlayer.name}
     `;
     
     document.getElementById('btn-roll').disabled = currentPlayer.isBot;
