@@ -5,20 +5,21 @@
     user-select: none;
 }
 
-/* Grid Papan Monopoli (11x11) */
+/* Grid Papan Monopoli yang Responsif */
 .monopoly-board {
     display: grid;
     grid-template-columns: 1.6fr repeat(9, 1fr) 1.6fr;
     grid-template-rows: 1.6fr repeat(9, 1fr) 1.6fr;
     aspect-ratio: 1 / 1;
     width: 100%;
-    max-width: 740px;
+    /* Menggunakan min agar menyesuaikan layar HP (misal padding layar 16px, maka dikurangi 32px) */
+    max-width: min(94vw, 560px); 
     background-color: #0f172a;
-    border: 10px solid #1e293b;
-    border-radius: 16px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    border: 6px solid #1e293b; /* Border sedikit diperkecil di mobile agar pas */
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    margin: 0 auto;
 }
-
 .tile {
     background-color: #f8fafc;
     border: 1px solid #cbd5e1;
