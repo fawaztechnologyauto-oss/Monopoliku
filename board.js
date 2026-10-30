@@ -47,7 +47,6 @@ function renderBoard() {
     const board = document.getElementById('board');
     if (!board) return;
     
-    // Sisakan panel tengah, hapus petak lama jika dirender ulang
     const existingPanel = board.querySelector('.col-start-2');
     board.innerHTML = '';
     if (existingPanel) board.appendChild(existingPanel);
@@ -57,7 +56,6 @@ function renderBoard() {
         el.className = 'tile text-slate-800';
         el.id = `tile-${index}`;
 
-        // Pemetaan Grid 9 Kolom x 13 Baris (Total 40 Petak)
         if (index >= 0 && index <= 8) { 
             el.style.gridRow = "13"; 
             el.style.gridColumn = `${9 - index}`; 
