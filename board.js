@@ -47,36 +47,54 @@ function renderBoard() {
     const board = document.getElementById('board');
     if (!board) return;
     
+    // Sisakan panel tengah, hapus petak lama jika dirender ulang
+    const existingPanel = board.querySelector('.col-start-2');
+    board.innerHTML = '';
+    if (existingPanel) board.appendChild(existingPanel);
+    
     TILES.forEach((tile, index) => {
         const el = document.createElement('div');
         el.className = 'tile text-slate-800';
         el.id = `tile-${index}`;
 
-        if (index >= 0 && index <= 10) { el.style.gridRow = "11"; el.style.gridColumn = `${11 - index}`; }
-        else if (index >= 11 && index <= 20) { el.style.gridColumn = "1"; el.style.gridRow = `${11 - (index - 10)}`; }
-        else if (index >= 21 && index <= 30) { el.style.gridRow = "1"; el.style.gridColumn = `${index - 19}`; }
-        else if (index >= 31 && index <= 39) { el.style.gridColumn = "11"; el.style.gridRow = `${index - 29}`; }
+        // Pemetaan Grid 9 Kolom x 13 Baris (Total 40 Petak)
+        if (index >= 0 && index <= 8) { 
+            el.style.gridRow = "13"; 
+            el.style.gridColumn = `${9 - index}`; 
+        }
+        else if (index >= 9 && index <= 20) { 
+            el.style.gridColumn = "1"; 
+            el.style.gridRow = `${13 - (index - 8)}`; 
+        }
+        else if (index >= 21 && index <= 28) { 
+            el.style.gridRow = "1"; 
+            el.style.gridColumn = `${index - 19}`; 
+        }
+        else if (index >= 29 && index <= 39) { 
+            el.style.gridColumn = "9"; 
+            el.style.gridRow = `${index - 27}`; 
+        }
 
         let headerColor = tile.color || 'bg-transparent';
         let icon = '';
-        if(tile.type === 'start') icon = '<i class="fa-solid fa-flag-checkered text-emerald-600 text-sm"></i>';
-        if(tile.type === 'jail') icon = '<i class="fa-solid fa-lock text-slate-600 text-sm"></i>';
-        if(tile.type === 'parking') icon = '<i class="fa-solid fa-car text-blue-600 text-sm"></i>';
-        if(tile.type === 'gotojail') icon = '<i class="fa-solid fa-handcuffs text-rose-600 text-sm"></i>';
-        if(tile.type === 'station') icon = '<i class="fa-solid fa-train text-slate-700 text-xs"></i>';
-        if(tile.type === 'tax') icon = '<i class="fa-solid fa-receipt text-rose-500 text-xs"></i>';
-        if(tile.type === 'chance') icon = '<i class="fa-solid fa-question text-amber-500 font-bold text-xs"></i>';
-        if(tile.type === 'chest') icon = '<i class="fa-solid fa-box-archive text-sky-500 text-xs"></i>';
+        if(tile.type === 'start') icon = '<i class="fa-solid fa-flag-checkered text-emerald-600"></i>';
+        if(tile.type === 'jail') icon = '<i class="fa-solid fa-lock text-slate-600"></i>';
+        if(tile.type === 'parking') icon = '<i class="fa-solid fa-car text-blue-600"></i>';
+        if(tile.type === 'gotojail') icon = '<i class="fa-solid fa-handcuffs text-rose-600"></i>';
+        if(tile.type === 'station') icon = '<i class="fa-solid fa-train text-slate-700"></i>';
+        if(tile.type === 'tax') icon = '<i class="fa-solid fa-receipt text-rose-500"></i>';
+        if(tile.type === 'chance') icon = '<i class="fa-solid fa-question text-amber-500 font-bold"></i>';
+        if(tile.type === 'chest') icon = '<i class="fa-solid fa-box-archive text-sky-500"></i>';
 
         el.innerHTML = `
-            ${tile.color ? `<div class="w-full h-2.5 ${headerColor} border-b border-slate-300"></div>` : ''}
+            ${tile.color ? `<div class="w-full h-1.5 ${headerColor} border-b border-slate-300"></div>` : ''}
             <div class="house-marker" id="house-marker-${index}"></div>
-            <div class="my-auto px-0.5">
-                ${icon ? `<div class="mb-0.5">${icon}</div>` : ''}
-                <div class="font-bold tracking-tight leading-none text-[8px]">${tile.name}</div>
+            <div class="my-auto px-0.5 leading-tight">
+                ${icon ? `<div class="text-[9px] mb-0.5">${icon}</div>` : ''}
+                <div class="font-bold tracking-tighter leading-none">${tile.name}</div>
                 ${tile.price ? `<div class="text-[7px] text-slate-500 mt-0.5 font-semibold">$${tile.price}</div>` : ''}
             </div>
-            <div class="token-container flex justify-center items-center gap-0.5 min-h-[14px] w-full pb-0.5"></div>
+            <div class="token-container flex justify-center items-center gap-0.5 min-h-[12px] w-full pb-0.5"></div>
         `;
         board.appendChild(el);
     });
