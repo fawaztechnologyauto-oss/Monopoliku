@@ -4,7 +4,9 @@ let webAppUrl = localStorage.getItem('monopoly_webapp_url') || '';
 let turnRound = 1;
 let currentPlayerIndex = 0;
 let turnTimerInterval = null;
+let modalTimerInterval = null;
 let timeLeft = 10;
+let modalTimeLeft = 10;
 let hasRolled = false;
 let pendingBuyTile = null;
 let selectedPropertyTileId = null;
@@ -19,7 +21,7 @@ window.onload = () => {
         const inputUrl = document.getElementById('setting-url');
         if (inputUrl) inputUrl.value = webAppUrl;
     }
-    addLog("System", "Game Monopoli Siap Dimainkan (Fitur Lengkap Aktif)!");
+    addLog("System", "Game Monopoli Siap Dimainkan!");
 };
 
 function addLog(sender, message) {
@@ -42,13 +44,22 @@ function startTurnTimer() {
     timeLeft = 10;
     updateTimerUI();
     
-    turnTimerInterval = setInterval(() => {
+    const currentPlayer = PLAYERS[currentPlayerIndex];
+
+    // Tombol dadu hanya aktif jika giliran pemain manusia dan belum melempar
+    document.getElementById('btn-roll').disabled = currentPlayer.isBot || hasRolled;
+
+    turnTimerInterval = setInterval(async () => {
         timeLeft--;
         updateTimerUI();
         if (timeLeft <= 0) {
             clearInterval(turnTimerInterval);
-            addLog("System", `Waktu ${PLAYERS[currentPlayerIndex].name} habis! Auto Turn.`);
-            endTurn();
+            addLog("System", `Waktu ${currentPlayer.name} habis! Auto Turn/Roll.`);
+            if (!hasRolled) {
+                await handleRollDice();
+            } else {
+                endTurn();
+            }
         }
     }, 1000);
 }
@@ -90,10 +101,10 @@ function animateDiceRoll() {
 async function handleRollDice() {
     if (hasRolled) return;
     hasRolled = true;
+    clearInterval(turnTimerInterval);
     
     const player = PLAYERS[currentPlayerIndex];
 
-    // Cek Peraturan Penjara
     if (player.inJail) {
         const isInJail = handleJailRules(player, addLog);
         renderPlayerCards();
@@ -143,13 +154,18 @@ function checkTileAction(player) {
             if (!player.isBot) {
                 pendingBuyTile = tile;
                 showBuyModal(tile);
-            } else if (player.money >= tile.price) {
-                player.money -= tile.price;
-                player.properties.push(tile.id);
-                addLog(player.name, `Membeli ${tile.name} seharga $${tile.price}`);
-                updatePropertyListUI();
-                updateHouseMarkers();
-                renderPlayerCards();
+            } else {
+                // Keputusan acak untuk bot membeli properti (70% peluang beli jika uang cukup)
+                if (player.money >= tile.price && Math.random() < 0.7) {
+                    player.money -= tile.price;
+                    player.properties.push(tile.id);
+                    addLog(player.name, `Membeli ${tile.name} seharga $${tile.price}`);
+                    updatePropertyListUI();
+                    updateHouseMarkers();
+                    renderPlayerCards();
+                } else {
+                    addLog(player.name, `Melewati pembelian ${tile.name}.`);
+                }
             }
         } else if (owner.id !== player.id) {
             const rent = getPropertyRent(tile);
@@ -159,7 +175,7 @@ function checkTileAction(player) {
             renderPlayerCards();
         }
     } else if (tile.type === 'gotojail') {
-        player.pos = 10; // Posisi Penjara
+        player.pos = 10;
         player.inJail = true;
         player.jailTurns = 0;
         updateTokens();
@@ -172,13 +188,26 @@ function checkTileAction(player) {
     }
 }
 
+// Modal Pembelian dengan Timer Hitung Mundur (Auto-Pass jika habis)
 function showBuyModal(tile) {
+    pendingBuyTile = tile;
     document.getElementById('buy-title').innerText = `Beli ${tile.name}?`;
     document.getElementById('buy-desc').innerText = `Harga: $${tile.price}. Modal Anda: $${PLAYERS[currentPlayerIndex].money}`;
     document.getElementById('modal-buy').classList.remove('hidden');
+
+    modalTimeLeft = 10;
+    clearInterval(modalTimerInterval);
+    modalTimerInterval = setInterval(() => {
+        modalTimeLeft--;
+        if (modalTimeLeft <= 0) {
+            clearInterval(modalTimerInterval);
+            confirmBuy(false); // Otomatis Lewati jika waktu habis
+        }
+    }, 1000);
 }
 
 function confirmBuy(willBuy) {
+    clearInterval(modalTimerInterval);
     document.getElementById('modal-buy').classList.add('hidden');
     const player = PLAYERS[currentPlayerIndex];
     if (willBuy && pendingBuyTile) {
@@ -194,14 +223,24 @@ function confirmBuy(willBuy) {
             actionAuctionProperty(pendingBuyTile);
         }
     } else if (!willBuy && pendingBuyTile) {
-        addLog("System", `Properti ${pendingBuyTile.name} dilelang ke publik.`);
+        addLog("System", `Properti ${pendingBuyTile.name} dilewati, masuk ke lelang publik.`);
         actionAuctionProperty(pendingBuyTile);
     }
     pendingBuyTile = null;
 }
 
-// --- FITUR UPGRADE ASET ---
+// Cek apakah tombol kontrol properti diizinkan (hanya saat giliran pemain manusia yang aktif)
+function validateHumanTurn() {
+    const currentPlayer = PLAYERS[currentPlayerIndex];
+    if (currentPlayer.isBot) {
+        alert("Bukan giliran Anda! Kontrol properti hanya bisa diakses pada giliran Anda.");
+        return false;
+    }
+    return true;
+}
+
 function actionUpgradeProperty() {
+    if (!validateHumanTurn()) return;
     if (selectedPropertyTileId === null) {
         alert("Pilih properti terlebih dahulu dari daftar!");
         return;
@@ -225,21 +264,21 @@ function actionUpgradeProperty() {
     }
 }
 
-// --- FITUR LELANG ASET ---
 function actionAuctionProperty(tileOverride = null) {
     const tileId = tileOverride ? tileOverride.id : selectedPropertyTileId;
-    if (tileId === null) {
+    if (tileId === null && !tileOverride) {
+        if (!validateHumanTurn()) return;
         alert("Pilih properti yang ingin dilelang!");
         return;
     }
     const tile = TILES[tileId];
     let highestBidder = null;
-    let highestBid = Math.round(tile.price * 0.5); // Harga awal lelang 50%
+    let highestBid = Math.round(tile.price * 0.5);
 
     PLAYERS.forEach(p => {
-        if (p.money >= highestBid) {
+        if (p.money >= highestBid && Math.random() > 0.3) {
             highestBidder = p;
-            highestBid += 20; // simulasi kenaikan bid sederhana
+            highestBid += 20;
         }
     });
 
@@ -255,12 +294,12 @@ function actionAuctionProperty(tileOverride = null) {
         updateHouseMarkers();
         renderPlayerCards();
     } else {
-        addLog("Lelang", `Lelang ${tile.name} gagal, tidak ada penawar yang mampu.`);
+        addLog("Lelang", `Lelang ${tile.name} gagal, tidak ada penawar yang berminat.`);
     }
 }
 
-// --- FITUR AKUISISI ASET ---
 function actionAcquireProperty() {
+    if (!validateHumanTurn()) return;
     if (selectedPropertyTileId === null) {
         alert("Pilih properti yang ingin diakuisisi dari daftar!");
         return;
@@ -270,7 +309,7 @@ function actionAcquireProperty() {
     const owner = PLAYERS.find(p => p.properties.includes(tile.id));
 
     if (!owner) {
-        alert("Properti ini belum dimiliki siapa pun, silakan beli langsung!");
+        alert("Properti ini belum dimiliki siapa pun!");
         return;
     }
     if (owner.id === player.id) {
@@ -278,12 +317,18 @@ function actionAcquireProperty() {
         return;
     }
 
-    const acquisitionCost = tile.price * 1.5; // Harga akuisisi 150% dari harga asli
+    const acquisitionCost = tile.price * 1.5;
     if (player.money >= acquisitionCost) {
+        // Jika pemilik adalah bot, berikan peluang acak apakah bot mau melepas asetnya atau menolak
+        if (owner.isBot && Math.random() < 0.4) {
+            addLog("Akuisisi", `${owner.name} menolak melepas properti ${tile.name}!`);
+            alert(`${owner.name} menolak tawaran akuisisi Anda.`);
+            return;
+        }
+
         player.money -= acquisitionCost;
         owner.money += acquisitionCost;
 
-        // Pindahkan kepemilikan
         owner.properties = owner.properties.filter(id => id !== tile.id);
         player.properties.push(tile.id);
 
@@ -292,12 +337,13 @@ function actionAcquireProperty() {
         updateHouseMarkers();
         renderPlayerCards();
     } else {
-        addLog("System", "Uang Anda tidak cukup untuk melakukan akuisisi properti ini!");
+        addLog("System", "Uang Anda tidak cukup untuk melakukan akuisisi!");
     }
 }
 
 function endTurn() {
     clearInterval(turnTimerInterval);
+    clearInterval(modalTimerInterval);
     hasRolled = false;
     
     currentPlayerIndex = (currentPlayerIndex + 1) % PLAYERS.length;
