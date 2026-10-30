@@ -14,7 +14,6 @@ function renderPlayerCards() {
         const card = document.createElement('div');
         card.className = `p-2.5 rounded-xl border transition ${isActive ? 'bg-indigo-950/70 border-indigo-500 shadow-lg' : 'bg-slate-950/40 border-slate-800'}`;
         
-        // Tombol pilih peran (agar user bisa ganti jadi P1, P2, P3, atau P4)
         card.innerHTML = `
             <div class="flex justify-between items-center mb-1">
                 <div class="flex items-center gap-1.5">
@@ -32,7 +31,6 @@ function renderPlayerCards() {
     });
 }
 
-// Fungsi untuk memilih slot pemain mana yang ingin dimainkan manusia
 function selectPlayerRole(selectedIdx) {
     PLAYERS.forEach((p, idx) => {
         p.isBot = (idx !== selectedIdx);
@@ -40,7 +38,6 @@ function selectPlayerRole(selectedIdx) {
     renderPlayerCards();
     addLog("System", `Anda sekarang bermain sebagai ${PLAYERS[selectedIdx].name}.`);
     
-    // Jika giliran langsung jatuh ke bot/pemain lain setelah dipilih, sesuaikan tombol
     const currentPlayer = PLAYERS[currentPlayerIndex];
     document.getElementById('btn-roll').disabled = currentPlayer.isBot || hasRolled;
 }
