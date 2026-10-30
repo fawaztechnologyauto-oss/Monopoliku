@@ -154,10 +154,11 @@ function checkTileAction(player) {
     if (tile.type === 'property' || tile.type === 'station' || tile.type === 'utility') {
         const owner = PLAYERS.find(p => p.properties.includes(tile.id));
         if (!owner) {
-            if (!player.isBot) {
+            // Pastikan hanya pemain aktif (giliran saat itu) yang bisa memunculkan modal pembelian
+            if (!player.isBot && player.id === PLAYERS[currentPlayerIndex].id) {
                 pendingBuyTile = tile;
                 showBuyModal(tile);
-            } else {
+            } else if (player.isBot) {
                 if (player.money >= tile.price && Math.random() < 0.7) {
                     player.money -= tile.price;
                     player.properties.push(tile.id);
@@ -167,6 +168,7 @@ function checkTileAction(player) {
                     renderPlayerCards();
                 } else {
                     addLog(player.name, `Melewati pembelian ${tile.name}.`);
+                    actionAuctionProperty(tile);
                 }
             }
         } else if (owner.id !== player.id) {
@@ -210,6 +212,8 @@ function showBuyModal(tile) {
 function confirmBuy(willBuy) {
     clearInterval(modalTimerInterval);
     document.getElementById('modal-buy').classList.add('hidden');
+    
+    // Pastikan eksekusi pembelian hanya berlaku untuk pemain yang sedang bergiliran aktif
     const player = PLAYERS[currentPlayerIndex];
     if (willBuy && pendingBuyTile) {
         if (player.money >= pendingBuyTile.price) {
@@ -229,8 +233,6 @@ function confirmBuy(willBuy) {
     }
     pendingBuyTile = null;
 
-    // PERBAIKAN: Jika sebelumnya waktu giliran utama sudah habis (atau dilempar otomatis karena waktu habis), 
-    // setelah modal ditutup langsung akhiri giliran secara otomatis.
     if (timeLeft <= 0) {
         addLog("System", "Waktu habis setelah aksi, mengakhiri giliran otomatis.");
         endTurn();
@@ -289,7 +291,7 @@ function actionAuctionProperty(tileOverride = null) {
         showAlertModal("Pilih properti yang ingin dilelang!");
         return;
     }
-    const tile = TILES[tileId];
+    const tile = TILES[tileId || tileOverride.id];
     let highestBidder = null;
     let highestBid = Math.round(tile.price * 0.5);
 
