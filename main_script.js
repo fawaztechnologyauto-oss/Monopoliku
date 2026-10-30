@@ -5,7 +5,6 @@ let turnRound = 1;
 let currentPlayerIndex = 0;
 let turnTimerInterval = null;
 let timeLeft = 10;
-let isProcessingTurn = false;
 let hasRolled = false;
 let pendingBuyTile = null;
 let selectedPropertyTileId = null;
@@ -20,7 +19,7 @@ window.onload = () => {
         const inputUrl = document.getElementById('setting-url');
         if (inputUrl) inputUrl.value = webAppUrl;
     }
-    addLog("System", "Game Monopoli Siap Dimainkan!");
+    addLog("System", "Game Monopoli Siap Dimainkan (Fitur Lengkap Aktif)!");
 };
 
 function addLog(sender, message) {
@@ -92,6 +91,19 @@ async function handleRollDice() {
     if (hasRolled) return;
     hasRolled = true;
     
+    const player = PLAYERS[currentPlayerIndex];
+
+    // Cek Peraturan Penjara
+    if (player.inJail) {
+        const isInJail = handleJailRules(player, addLog);
+        renderPlayerCards();
+        if (isInJail) {
+            document.getElementById('btn-roll').disabled = true;
+            document.getElementById('btn-end').disabled = false;
+            return;
+        }
+    }
+
     await animateDiceRoll();
 
     const d1 = Math.floor(Math.random() * 6) + 1;
@@ -101,8 +113,6 @@ async function handleRollDice() {
     document.getElementById('dice-2').innerText = d2;
     
     const total = d1 + d2;
-    const player = PLAYERS[currentPlayerIndex];
-    
     addLog(player.name, `Melempar dadu ${d1} + ${d2} = ${total}. Berjalan...`);
 
     for (let step = 0; step < total; step++) {
@@ -148,17 +158,16 @@ function checkTileAction(player) {
             addLog(player.name, `Membayar sewa $${rent} kepada ${owner.name} di ${tile.name}`);
             renderPlayerCards();
         }
-    } else if (tile.type === 'chance') {
-        const card = CHANCE_CARDS[Math.floor(Math.random() * CHANCE_CARDS.length)];
-        card.action(player);
-        showCardModal("KESEMPATAN", card.title, card.desc);
-        addLog(player.name, `Mendapat Kesempatan: ${card.title}`);
+    } else if (tile.type === 'gotojail') {
+        player.pos = 10; // Posisi Penjara
+        player.inJail = true;
+        player.jailTurns = 0;
+        updateTokens();
+        addLog(player.name, `Ditangkap dan dijebloskan ke Penjara!`);
         renderPlayerCards();
-    } else if (tile.type === 'chest') {
-        const card = CHEST_CARDS[Math.floor(Math.random() * CHEST_CARDS.length)];
-        card.action(player);
-        showCardModal("DANA UMUM", card.title, card.desc);
-        addLog(player.name, `Mendapat Dana Umum: ${card.title}`);
+    } else if (tile.type === 'tax') {
+        player.money -= tile.amount;
+        addLog(player.name, `Membayar pajak sebesar $${tile.amount}`);
         renderPlayerCards();
     }
 }
@@ -171,8 +180,8 @@ function showBuyModal(tile) {
 
 function confirmBuy(willBuy) {
     document.getElementById('modal-buy').classList.add('hidden');
+    const player = PLAYERS[currentPlayerIndex];
     if (willBuy && pendingBuyTile) {
-        const player = PLAYERS[currentPlayerIndex];
         if (player.money >= pendingBuyTile.price) {
             player.money -= pendingBuyTile.price;
             player.properties.push(pendingBuyTile.id);
@@ -181,21 +190,110 @@ function confirmBuy(willBuy) {
             updateHouseMarkers();
             renderPlayerCards();
         } else {
-            addLog("System", "Uang tidak cukup untuk membeli properti ini!");
+            addLog("System", "Uang tidak cukup! Properti dilelang otomatis.");
+            actionAuctionProperty(pendingBuyTile);
         }
+    } else if (!willBuy && pendingBuyTile) {
+        addLog("System", `Properti ${pendingBuyTile.name} dilelang ke publik.`);
+        actionAuctionProperty(pendingBuyTile);
     }
     pendingBuyTile = null;
 }
 
-function showCardModal(category, title, desc) {
-    document.getElementById('card-category').innerText = category;
-    document.getElementById('card-title').innerText = title;
-    document.getElementById('card-desc').innerText = desc;
-    document.getElementById('modal-card').classList.remove('hidden');
+// --- FITUR UPGRADE ASET ---
+function actionUpgradeProperty() {
+    if (selectedPropertyTileId === null) {
+        alert("Pilih properti terlebih dahulu dari daftar!");
+        return;
+    }
+    const player = PLAYERS[currentPlayerIndex];
+    if (player.properties.includes(selectedPropertyTileId)) {
+        const currentLvl = propertyLevels[selectedPropertyTileId] || 1;
+        const upgradeCost = 100;
+        if (player.money >= upgradeCost) {
+            player.money -= upgradeCost;
+            propertyLevels[selectedPropertyTileId] = currentLvl + 1;
+            addLog(player.name, `Meng-upgrade ${TILES[selectedPropertyTileId].name} ke Level ${currentLvl + 1}`);
+            updatePropertyListUI();
+            updateHouseMarkers();
+            renderPlayerCards();
+        } else {
+            addLog("System", "Uang tidak cukup untuk upgrade bangunan!");
+        }
+    } else {
+        alert("Anda bukan pemilik properti ini!");
+    }
 }
 
-function closeCardModal() {
-    document.getElementById('modal-card').classList.add('hidden');
+// --- FITUR LELANG ASET ---
+function actionAuctionProperty(tileOverride = null) {
+    const tileId = tileOverride ? tileOverride.id : selectedPropertyTileId;
+    if (tileId === null) {
+        alert("Pilih properti yang ingin dilelang!");
+        return;
+    }
+    const tile = TILES[tileId];
+    let highestBidder = null;
+    let highestBid = Math.round(tile.price * 0.5); // Harga awal lelang 50%
+
+    PLAYERS.forEach(p => {
+        if (p.money >= highestBid) {
+            highestBidder = p;
+            highestBid += 20; // simulasi kenaikan bid sederhana
+        }
+    });
+
+    if (highestBidder) {
+        const owner = PLAYERS.find(p => p.properties.includes(tile.id));
+        if (owner) {
+            owner.properties = owner.properties.filter(id => id !== tile.id);
+        }
+        highestBidder.money -= highestBid;
+        highestBidder.properties.push(tile.id);
+        addLog("Lelang", `${highestBidder.name} memenangkan lelang ${tile.name} seharga $${highestBid}!`);
+        updatePropertyListUI();
+        updateHouseMarkers();
+        renderPlayerCards();
+    } else {
+        addLog("Lelang", `Lelang ${tile.name} gagal, tidak ada penawar yang mampu.`);
+    }
+}
+
+// --- FITUR AKUISISI ASET ---
+function actionAcquireProperty() {
+    if (selectedPropertyTileId === null) {
+        alert("Pilih properti yang ingin diakuisisi dari daftar!");
+        return;
+    }
+    const player = PLAYERS[currentPlayerIndex];
+    const tile = TILES[selectedPropertyTileId];
+    const owner = PLAYERS.find(p => p.properties.includes(tile.id));
+
+    if (!owner) {
+        alert("Properti ini belum dimiliki siapa pun, silakan beli langsung!");
+        return;
+    }
+    if (owner.id === player.id) {
+        alert("Anda sudah memiliki properti ini!");
+        return;
+    }
+
+    const acquisitionCost = tile.price * 1.5; // Harga akuisisi 150% dari harga asli
+    if (player.money >= acquisitionCost) {
+        player.money -= acquisitionCost;
+        owner.money += acquisitionCost;
+
+        // Pindahkan kepemilikan
+        owner.properties = owner.properties.filter(id => id !== tile.id);
+        player.properties.push(tile.id);
+
+        addLog(player.name, `Mengakuisisi ${tile.name} dari ${owner.name} seharga $${acquisitionCost}`);
+        updatePropertyListUI();
+        updateHouseMarkers();
+        renderPlayerCards();
+    } else {
+        addLog("System", "Uang Anda tidak cukup untuk melakukan akuisisi properti ini!");
+    }
 }
 
 function endTurn() {
@@ -210,7 +308,7 @@ function endTurn() {
     
     const currentPlayer = PLAYERS[currentPlayerIndex];
     document.getElementById('current-player-name').innerHTML = `
-        <span class="w-2.5 h-2.5 rounded-full ${currentPlayer.bgClass} inline-block"></span> ${currentPlayer.name}
+        <span class="w-2 h-2 rounded-full ${currentPlayer.bgClass} inline-block"></span> ${currentPlayer.name}
     `;
     
     document.getElementById('btn-roll').disabled = currentPlayer.isBot;
@@ -227,33 +325,6 @@ function endTurn() {
             }, 1500);
         }, 1000);
     }
-}
-
-function actionUpgradeProperty() {
-    if (selectedPropertyTileId === null) return;
-    const player = PLAYERS[currentPlayerIndex];
-    if (player.properties.includes(selectedPropertyTileId)) {
-        const currentLvl = propertyLevels[selectedPropertyTileId] || 1;
-        const upgradeCost = 100;
-        if (player.money >= upgradeCost) {
-            player.money -= upgradeCost;
-            propertyLevels[selectedPropertyTileId] = currentLvl + 1;
-            addLog(player.name, `Meng-upgrade ${TILES[selectedPropertyTileId].name} ke Level ${currentLvl + 1}`);
-            updatePropertyListUI();
-            updateHouseMarkers();
-            renderPlayerCards();
-        } else {
-            addLog("System", "Uang tidak cukup untuk upgrade!");
-        }
-    }
-}
-
-function actionAuctionProperty() {
-    addLog("System", "Fitur lelang belum diaktifkan.");
-}
-
-function actionAcquireProperty() {
-    addLog("System", "Fitur akuisisi belum diaktifkan.");
 }
 
 function openSettingsModal() {
