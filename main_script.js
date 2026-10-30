@@ -39,7 +39,6 @@ function clearLogs() {
     if (logsContainer) logsContainer.innerHTML = '';
 }
 
-// Hitung mundur terus berjalan, hanya dijeda (pause) saat ada modal pop up aktif
 function startTurnTimer() {
     clearInterval(turnTimerInterval);
     timeLeft = 10;
@@ -49,7 +48,7 @@ function startTurnTimer() {
     document.getElementById('btn-roll').disabled = currentPlayer.isBot || hasRolled;
 
     turnTimerInterval = setInterval(async () => {
-        // Cek apakah ada modal pop-up yang sedang terbuka (jeda timer)
+        // Cek apakah ada modal pop-up yang sedang terbuka (jeda timer utama)
         const isModalOpen = !document.getElementById('modal-buy').classList.contains('hidden') ||
                             !document.getElementById('modal-card').classList.contains('hidden') ||
                             !document.getElementById('modal-alert').classList.contains('hidden');
@@ -62,10 +61,8 @@ function startTurnTimer() {
             addLog("System", `Waktu ${currentPlayer.name} habis!`);
             
             if (!hasRolled && !currentPlayer.isBot) {
-                // Jika belum melempar dadu, otomatis lempar dadu
                 await handleRollDice();
             } else {
-                // Jika sudah melempar dan waktu habis, langsung akhiri giliran
                 endTurn();
             }
         }
@@ -194,7 +191,6 @@ function checkTileAction(player) {
     }
 }
 
-// Modal Pembelian dengan Timer Hitung Mundur
 function showBuyModal(tile) {
     pendingBuyTile = tile;
     document.getElementById('buy-title').innerText = `Beli ${tile.name}?`;
@@ -233,9 +229,11 @@ function confirmBuy(willBuy) {
         actionAuctionProperty(pendingBuyTile);
     }
     pendingBuyTile = null;
+
+    // PERBAIKAN UTAMA: Lanjutkan kembali timer utama setelah modal pembelian ditutup
+    startTurnTimer();
 }
 
-// Modal Peringatan Seragam
 function showAlertModal(message) {
     document.getElementById('alert-desc').innerText = message;
     document.getElementById('modal-alert').classList.remove('hidden');
