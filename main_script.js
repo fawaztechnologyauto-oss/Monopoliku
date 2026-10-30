@@ -39,25 +39,33 @@ function clearLogs() {
     if (logsContainer) logsContainer.innerHTML = '';
 }
 
+// Hitung mundur terus berjalan, hanya dijeda (pause) saat ada modal pop up aktif
 function startTurnTimer() {
     clearInterval(turnTimerInterval);
     timeLeft = 10;
     updateTimerUI();
     
     const currentPlayer = PLAYERS[currentPlayerIndex];
-
-    // Tombol dadu hanya aktif jika giliran pemain manusia dan belum melempar
     document.getElementById('btn-roll').disabled = currentPlayer.isBot || hasRolled;
 
     turnTimerInterval = setInterval(async () => {
+        // Cek apakah ada modal pop-up yang sedang terbuka (jeda timer)
+        const isModalOpen = !document.getElementById('modal-buy').classList.contains('hidden') ||
+                            !document.getElementById('modal-card').classList.contains('hidden') ||
+                            !document.getElementById('modal-alert').classList.contains('hidden');
+        if (isModalOpen) return;
+
         timeLeft--;
         updateTimerUI();
         if (timeLeft <= 0) {
             clearInterval(turnTimerInterval);
-            addLog("System", `Waktu ${currentPlayer.name} habis! Auto Turn/Roll.`);
-            if (!hasRolled) {
+            addLog("System", `Waktu ${currentPlayer.name} habis!`);
+            
+            if (!hasRolled && !currentPlayer.isBot) {
+                // Jika belum melempar dadu, otomatis lempar dadu
                 await handleRollDice();
             } else {
+                // Jika sudah melempar dan waktu habis, langsung akhiri giliran
                 endTurn();
             }
         }
@@ -101,7 +109,6 @@ function animateDiceRoll() {
 async function handleRollDice() {
     if (hasRolled) return;
     hasRolled = true;
-    clearInterval(turnTimerInterval);
     
     const player = PLAYERS[currentPlayerIndex];
 
@@ -155,7 +162,6 @@ function checkTileAction(player) {
                 pendingBuyTile = tile;
                 showBuyModal(tile);
             } else {
-                // Keputusan acak untuk bot membeli properti (70% peluang beli jika uang cukup)
                 if (player.money >= tile.price && Math.random() < 0.7) {
                     player.money -= tile.price;
                     player.properties.push(tile.id);
@@ -188,7 +194,7 @@ function checkTileAction(player) {
     }
 }
 
-// Modal Pembelian dengan Timer Hitung Mundur (Auto-Pass jika habis)
+// Modal Pembelian dengan Timer Hitung Mundur
 function showBuyModal(tile) {
     pendingBuyTile = tile;
     document.getElementById('buy-title').innerText = `Beli ${tile.name}?`;
@@ -229,11 +235,20 @@ function confirmBuy(willBuy) {
     pendingBuyTile = null;
 }
 
-// Cek apakah tombol kontrol properti diizinkan (hanya saat giliran pemain manusia yang aktif)
+// Modal Peringatan Seragam
+function showAlertModal(message) {
+    document.getElementById('alert-desc').innerText = message;
+    document.getElementById('modal-alert').classList.remove('hidden');
+}
+
+function closeAlertModal() {
+    document.getElementById('modal-alert').classList.add('hidden');
+}
+
 function validateHumanTurn() {
     const currentPlayer = PLAYERS[currentPlayerIndex];
     if (currentPlayer.isBot) {
-        alert("Bukan giliran Anda! Kontrol properti hanya bisa diakses pada giliran Anda.");
+        showAlertModal("Bukan giliran Anda! Kontrol properti hanya bisa diakses pada giliran Anda.");
         return false;
     }
     return true;
@@ -242,7 +257,7 @@ function validateHumanTurn() {
 function actionUpgradeProperty() {
     if (!validateHumanTurn()) return;
     if (selectedPropertyTileId === null) {
-        alert("Pilih properti terlebih dahulu dari daftar!");
+        showAlertModal("Pilih properti terlebih dahulu dari daftar!");
         return;
     }
     const player = PLAYERS[currentPlayerIndex];
@@ -260,7 +275,7 @@ function actionUpgradeProperty() {
             addLog("System", "Uang tidak cukup untuk upgrade bangunan!");
         }
     } else {
-        alert("Anda bukan pemilik properti ini!");
+        showAlertModal("Anda bukan pemilik properti ini!");
     }
 }
 
@@ -268,7 +283,7 @@ function actionAuctionProperty(tileOverride = null) {
     const tileId = tileOverride ? tileOverride.id : selectedPropertyTileId;
     if (tileId === null && !tileOverride) {
         if (!validateHumanTurn()) return;
-        alert("Pilih properti yang ingin dilelang!");
+        showAlertModal("Pilih properti yang ingin dilelang!");
         return;
     }
     const tile = TILES[tileId];
@@ -301,7 +316,7 @@ function actionAuctionProperty(tileOverride = null) {
 function actionAcquireProperty() {
     if (!validateHumanTurn()) return;
     if (selectedPropertyTileId === null) {
-        alert("Pilih properti yang ingin diakuisisi dari daftar!");
+        showAlertModal("Pilih properti yang ingin diakuisisi dari daftar!");
         return;
     }
     const player = PLAYERS[currentPlayerIndex];
@@ -309,20 +324,19 @@ function actionAcquireProperty() {
     const owner = PLAYERS.find(p => p.properties.includes(tile.id));
 
     if (!owner) {
-        alert("Properti ini belum dimiliki siapa pun!");
+        showAlertModal("Properti ini belum dimiliki siapa pun!");
         return;
     }
     if (owner.id === player.id) {
-        alert("Anda sudah memiliki properti ini!");
+        showAlertModal("Anda sudah memiliki properti ini!");
         return;
     }
 
     const acquisitionCost = tile.price * 1.5;
     if (player.money >= acquisitionCost) {
-        // Jika pemilik adalah bot, berikan peluang acak apakah bot mau melepas asetnya atau menolak
         if (owner.isBot && Math.random() < 0.4) {
             addLog("Akuisisi", `${owner.name} menolak melepas properti ${tile.name}!`);
-            alert(`${owner.name} menolak tawaran akuisisi Anda.`);
+            showAlertModal(`${owner.name} menolak tawaran akuisisi Anda.`);
             return;
         }
 
